@@ -1,0 +1,113 @@
+<div class="layout-container" [class.sidebar-collapsed]="sidebarCollapsed">
+
+  <!-- TOP NAVBAR -->
+  <header class="top-navbar">
+    <div class="navbar-left">
+      <button class="menu-toggle" (click)="toggleSidebar()">
+        <span class="material-icons">{{ sidebarCollapsed ? 'menu' : 'menu_open' }}</span>
+      </button>
+      <h1 class="page-title">Student Portal</h1>
+    </div>
+    <div class="navbar-right">
+      <div class="user-badge">
+        <div class="user-avatar">{{ studentInitials }}</div>
+        <div class="user-info">
+          <span class="user-name">{{ studentName }}</span>
+          <span class="user-id">SID: {{ studentId }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STUDENT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo-container">
+        <span class="material-icons logo-icon">local_library</span>
+        <div class="logo-text">
+          <h2>BookNest</h2>
+          <span class="student-badge">STUDENT</span>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav-links">
+      <li class="menu-header">DASHBOARD</li>
+      <li>
+        <a routerLink="/student/dashboard" routerLinkActive="active-link">
+          <span class="material-icons">dashboard</span>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <li class="menu-header">LIBRARY</li>
+      <li>
+        <a routerLink="/student/browse" routerLinkActive="active-link">
+          <span class="material-icons">search</span>
+          <span>Browse Books</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/student/activity" routerLinkActive="active-link">
+          <span class="material-icons">library_books</span>
+          <span>My Activity</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/student/my-stats" routerLinkActive="active-link">
+          <span class="material-icons">insights</span>
+          <span>My Stats</span>
+        </a>
+      </li>
+
+      <li class="menu-header">COMMUNICATION</li>
+      <li>
+        <a routerLink="/student/notices" routerLinkActive="active-link">
+          <span class="material-icons">campaign</span>
+          <span>Notices</span>
+        </a>
+      </li>
+
+      <li class="menu-header">ACCOUNT</li>
+      <li>
+        <a routerLink="/student/profile" routerLinkActive="active-link">
+          <span class="material-icons">person</span>
+          <span>Profile</span>
+        </a>
+      </li>
+      <li>
+        <button class="logout-btn" (click)="openLogoutModal()">
+          <span class="material-icons">logout</span>
+          <span>Logout</span>
+        </button>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showLogoutModal" (click)="closeLogoutModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Logout</h3>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to logout?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeLogoutModal()">
+          Cancel
+        </button>
+        <button class="btn btn-danger" (click)="confirmLogout()">
+          Yes, Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

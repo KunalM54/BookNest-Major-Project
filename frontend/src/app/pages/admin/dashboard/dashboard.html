@@ -1,0 +1,182 @@
+<div class="page-container">
+
+  <!-- Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="banner-content">
+      <h1>Admin Dashboard</h1>
+      <p>Monitor library operations, manage resources, and track activities at a glance.</p>
+    </div>
+    <div class="banner-icon">
+      <span class="material-icons">local_library</span>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon books">
+        <span class="material-icons">library_books</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.totalBooks }}</span>
+        <span class="stat-label">Total Books</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon members">
+        <span class="material-icons">people</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.activeMembers }}</span>
+        <span class="stat-label">Active Members</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon issued">
+        <span class="material-icons">assignment_turned_in</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.booksIssued }}</span>
+        <span class="stat-label">Books Issued</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon overdue">
+        <span class="material-icons">schedule</span>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.overdueBooks }}</span>
+        <span class="stat-label">Overdue Books</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="main-content">
+    
+    <!-- Recent Requests Section -->
+    <div class="content-card table-card">
+      <div class="card-header">
+        <h2>Recent Borrow Requests</h2>
+        <a class="view-all-link" routerLink="/admin/requests">
+          View All
+          <span class="material-icons">arrow_forward</span>
+        </a>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Book Title</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let req of requests" class="table-row">
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">{{ req.studentName.charAt(0) || 'U' }}</div>
+                  <span class="user-name">{{ req.studentName }}</span>
+                </div>
+              </td>
+              <td class="book-cell">
+                <div class="book-cell-inner">
+                  <div class="book-thumb-wrap">
+                    <img *ngIf="req.bookImage && req.bookImage.trim()" [src]="req.bookImage" [alt]="req.bookTitle" class="book-thumb" (error)="req.bookImage = undefined">
+                    <span *ngIf="!req.bookImage || !req.bookImage.trim()" class="material-icons book-thumb-icon">menu_book</span>
+                  </div>
+                  <span class="book-title">{{ req.bookTitle }}</span>
+                </div>
+              </td>
+              <td class="date-cell">{{ req.requestDate }}</td>
+              <td>
+                <span class="status-badge"
+                      [class.status-pending]="(req.displayStatus || req.status) === 'PENDING'"
+                      [class.status-approved]="(req.displayStatus || req.status) === 'APPROVED'"
+                      [class.status-overdue]="(req.displayStatus || req.status) === 'OVERDUE'"
+                      [class.status-rejected]="(req.displayStatus || req.status) === 'REJECTED'">
+                  {{ (req.displayStatus || req.status) === 'PENDING' ? 'Pending' :
+                     (req.displayStatus || req.status) === 'APPROVED' ? 'Approved' :
+                     (req.displayStatus || req.status) === 'OVERDUE' ? 'Overdue' : 'Rejected' }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons">
+                  <ng-container *ngIf="req.status === 'PENDING'">
+                    <button class="action-btn action-approve" (click)="approveRequest(req.id)" title="Approve">
+                      <span class="material-icons">check</span>
+                    </button>
+                    <button class="action-btn action-reject" (click)="rejectRequest(req.id)" title="Reject">
+                      <span class="material-icons">close</span>
+                    </button>
+                  </ng-container>
+                  <ng-container *ngIf="req.status !== 'PENDING'">
+                    <button class="action-btn action-remove" (click)="removeRequest(req.id)" title="Remove">
+                      <span class="material-icons">delete_outline</span>
+                    </button>
+                  </ng-container>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div *ngIf="requests.length === 0" class="empty-state">
+          <span class="material-icons empty-icon">inbox</span>
+          <h3>No pending requests</h3>
+          <p>All borrow requests have been processed.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions Panel -->
+    <div class="content-card actions-card">
+      <div class="card-header">
+        <h2>Quick Actions</h2>
+      </div>
+      
+      <div class="action-list">
+        <a class="action-item action-primary" routerLink="/admin/books">
+          <span class="action-icon">
+            <span class="material-icons">add</span>
+          </span>
+          <span class="action-text">
+            <span class="action-title">Add New Book</span>
+            <span class="action-desc">Add a new book to the library</span>
+          </span>
+          <span class="material-icons action-arrow">chevron_right</span>
+        </a>
+
+        <a class="action-item action-secondary" routerLink="/admin/students">
+          <span class="action-icon">
+            <span class="material-icons">person_add</span>
+          </span>
+          <span class="action-text">
+            <span class="action-title">Add Student</span>
+            <span class="action-desc">Register a new student member</span>
+          </span>
+          <span class="material-icons action-arrow">chevron_right</span>
+        </a>
+
+        <a class="action-item action-outline" routerLink="/admin/reports">
+          <span class="action-icon">
+            <span class="material-icons">download</span>
+          </span>
+          <span class="action-text">
+            <span class="action-title">Download Report</span>
+            <span class="action-desc">Export library statistics</span>
+          </span>
+          <span class="material-icons action-arrow">chevron_right</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>

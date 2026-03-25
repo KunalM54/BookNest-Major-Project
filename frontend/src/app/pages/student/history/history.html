@@ -1,0 +1,88 @@
+<div class="page-container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">history</span>
+        Borrowing History
+      </h1>
+      <p class="page-subtitle">
+        {{ history.length }} book{{ history.length !== 1 ? 's' : '' }} returned
+      </p>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <div class="sort-dropdown">
+      <select [(ngModel)]="sortBy" (ngModelChange)="onSortChange()" class="sort-select">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="titleAZ">Title A-Z</option>
+      </select>
+      <span class="material-icons dropdown-icon">expand_more</span>
+    </div>
+    <app-global-search-bar 
+      placeholder="Search by book title..." 
+      [(value)]="searchTerm"
+      (valueChange)="onSearchChange()">
+    </app-global-search-bar>
+  </div>
+
+  <!-- History List -->
+  <div class="history-list" *ngIf="filteredHistory.length > 0">
+    <div class="history-card" *ngFor="let record of paginatedHistory">
+      <div class="book-cover">
+        <img *ngIf="record.bookImage && record.bookImage.trim()" [src]="record.bookImage" [alt]="record.title" class="cover-img" (error)="record.bookImage = undefined">
+        <span *ngIf="!record.bookImage || !record.bookImage.trim()" class="material-icons">menu_book</span>
+      </div>
+      <div class="book-info">
+        <h3 class="book-title">{{ record.title }}</h3>
+        <p class="book-author" *ngIf="record.author">{{ record.author }}</p>
+        <div class="book-dates">
+          <span class="date-item">
+            <span class="material-icons">calendar_today</span>
+            Borrowed: {{ record.borrowDate || '-' }}
+          </span>
+          <span class="date-item">
+            <span class="material-icons">event_available</span>
+            Returned: {{ record.returnDate || '-' }}
+          </span>
+        </div>
+      </div>
+      <div class="book-status">
+        <span class="status-badge returned" [class.returned-late]="record.status === 'RETURNED_LATE'">
+          <span class="material-icons">check_circle</span>
+          {{ record.status === 'RETURNED_LATE' ? 'Returned Late' : 'Returned' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="filteredHistory.length === 0">
+    <span class="material-icons empty-icon">history</span>
+    <h3>No borrowing history</h3>
+    <p>Your returned books will appear here</p>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="filteredHistory.length > pageSize">
+    <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">
+      <span class="material-icons">chevron_left</span>
+      Previous
+    </button>
+    <div class="page-numbers">
+      <ng-container *ngFor="let page of pageNumbers">
+        <span *ngIf="page < 0" class="page-ellipsis">…</span>
+        <button *ngIf="page > 0" (click)="goToPage(page)" class="page-number" [class.active]="page === currentPage">{{ page }}</button>
+      </ng-container>
+    </div>
+    <button (click)="goToNextPage()" [disabled]="currentPage === totalPages" class="page-btn">
+      Next
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+
+</div>

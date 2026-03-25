@@ -1,0 +1,84 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">assignment</span>
+        My Book Requests
+      </h1>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <!-- Search Bar -->
+    <div class="toolbar">
+      <div class="sort-wrap">
+        <label>Sort by:</label>
+        <select [(ngModel)]="sortBy" (ngModelChange)="onSortChange()" class="sort-select">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="titleAZ">Title A-Z</option>
+        </select>
+      </div>
+      <app-global-search-bar 
+        placeholder="Search by book title..." 
+        [(value)]="searchTerm"
+        (valueChange)="onSearchChange()">
+      </app-global-search-bar>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Book</th>
+            <th>Request Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let req of paginatedRequests">
+            <td class="book-cell">
+              <img *ngIf="req.bookImage && req.bookImage.trim()" [src]="req.bookImage" [alt]="req.bookTitle" class="book-thumb" (error)="req.bookImage = undefined">
+              <span *ngIf="!req.bookImage || !req.bookImage.trim()" class="material-icons book-icon">menu_book</span>
+              <span>{{req.bookTitle}}</span>
+            </td>
+            <td>{{req.requestDate}}</td>
+            <td>
+              <span class="badge" 
+                [class.badge-warning]="req.status === 'PENDING'"
+                [class.badge-success]="req.status === 'APPROVED'"
+                [class.badge-danger]="req.status === 'REJECTED'">
+                {{req.status}}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="filteredRequests.length === 0">
+            <td colspan="3" class="empty-cell">
+              <span class="material-icons">assignment</span>
+              <p>No requests found</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="filteredRequests.length > 0">
+      <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">
+        Previous
+      </button>
+      <ng-container *ngFor="let page of pageNumbers">
+        <span *ngIf="page < 0" class="page-ellipsis">…</span>
+        <button *ngIf="page > 0" (click)="goToPage(page)"
+          class="page-btn" [class.active]="page === currentPage">
+          {{ page }}
+        </button>
+      </ng-container>
+      <button (click)="goToNextPage()" [disabled]="currentPage === totalPages" class="page-btn">
+        Next
+      </button>
+    </div>
+  </div>
+
+</div>

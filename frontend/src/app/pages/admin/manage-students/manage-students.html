@@ -1,0 +1,111 @@
+<div class="page-container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">group</span>
+        Manage Students
+      </h1>
+      <p class="page-subtitle">View and manage student accounts</p>
+    </div>
+  </div>
+
+  <!-- Sticky Sub-header with Search & Filter -->
+  <div class="sub-header">
+    <div class="filters-left">
+      <div class="filter-group">
+        <select [(ngModel)]="selectedStatus" (change)="filterStatus($event)" class="filter-select">
+          <option value="all">All Students</option>
+          <option value="active">Active</option>
+          <option value="blocked">Blocked</option>
+        </select>
+        <span class="material-icons select-icon">expand_more</span>
+      </div>
+    </div>
+    <app-global-search-bar 
+      placeholder="Search by name, email, or ID..." 
+      [(value)]="searchTerm"
+      (valueChange)="onSearchChange()">
+    </app-global-search-bar>
+  </div>
+
+  <!-- Data Table Card -->
+  <div class="table-card">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th class="col-student">Student</th>
+          <th class="col-email">Email</th>
+          <th class="col-id">Student ID</th>
+          <th class="col-books">Books Borrowed</th>
+          <th class="col-status">Status</th>
+          <th class="col-actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let student of paginatedStudents" class="table-row">
+          <td class="col-student">
+            <div class="user-cell">
+              <div class="user-avatar">{{ student.fullName.charAt(0) || 'S' }}</div>
+              <div class="user-details">
+                <span class="user-name">{{ student.fullName }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="col-email">{{ student.email }}</td>
+          <td class="col-id">{{ student.studentId }}</td>
+          <td class="col-books text-center">{{ student.borrowedCount || 0 }}</td>
+          <td class="col-status">
+            <span class="status-pill" [class.active]="student.active" [class.blocked]="!student.active">
+              {{ student.active ? 'Active' : 'Blocked' }}
+            </span>
+          </td>
+          <td class="col-actions">
+            <div class="action-group">
+              <button class="action-btn view" (click)="viewStudent(student)" title="View">
+                <span class="material-icons">visibility</span>
+              </button>
+              <button class="action-btn" [class.block]="student.active" [class.activate]="!student.active" 
+                (click)="student.active ? blockStudent(student) : activateStudent(student)" 
+                [title]="student.active ? 'Block' : 'Activate'">
+                <span class="material-icons">{{ student.active ? 'block' : 'check_circle' }}</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Empty State -->
+        <tr *ngIf="filteredStudents.length === 0" class="empty-row">
+          <td colspan="6">
+            <div class="empty-state">
+              <span class="material-icons empty-icon">group_off</span>
+              <h3>No students found</h3>
+              <p>Try adjusting your search or filter criteria.</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Table Footer -->
+    <div class="table-footer" *ngIf="filteredStudents.length > 0">
+      <div class="footer-info">
+        Showing <strong>{{ paginatedStudents.length }}</strong> of <strong>{{ filteredStudents.length }}</strong> students
+      </div>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">
+          <span class="material-icons">chevron_left</span>
+        </button>
+        <ng-container *ngFor="let page of pageNumbers">
+          <span *ngIf="page < 0" class="page-ellipsis">…</span>
+          <button *ngIf="page > 0" (click)="goToPage(page)" class="page-btn" [class.active]="page === currentPage">{{ page }}</button>
+        </ng-container>
+        <button (click)="goToNextPage()" [disabled]="currentPage === totalPages" class="page-btn">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,87 @@
+<div class="page-container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">campaign</span>
+        Library Notices
+      </h1>
+      <p class="page-subtitle">
+        Stay updated with announcements
+      </p>
+    </div>
+  </div>
+
+  <!-- Notices List -->
+  <div class="notices-list" *ngIf="!isLoading && notices.length > 0">
+    <div 
+      class="notice-card" 
+      [class.important]="isHighPriority(notice)"
+      *ngFor="let notice of displayedNotices">
+      
+      <!-- Notice Header -->
+      <div class="notice-header" (click)="toggleNotice(notice.id)">
+        <div class="notice-icon" [class.important]="isHighPriority(notice)">
+          <span class="material-icons">{{ isHighPriority(notice) ? 'priority_high' : 'info' }}</span>
+        </div>
+        
+        <div class="notice-content">
+          <div class="notice-top">
+            <h3 class="notice-title">{{ notice.title }}</h3>
+            <span class="notice-date">{{ formatDate(notice.createdAt) }}</span>
+          </div>
+          <p class="notice-preview">{{ getFirstLine(notice.message) }}</p>
+        </div>
+        
+        <button class="expand-btn">
+          <span class="material-icons">{{ isExpanded(notice.id) ? 'expand_less' : 'expand_more' }}</span>
+        </button>
+      </div>
+      
+      <!-- Notice Body -->
+      <div class="notice-body" *ngIf="isExpanded(notice.id)">
+        <p class="notice-message">{{ notice.message }}</p>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="notices.length > itemsPerPage && !isLoading">
+    <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">
+      <span class="material-icons">chevron_left</span>
+      Previous
+    </button>
+    <div class="page-numbers">
+      <ng-container *ngFor="let page of pageNumbers">
+        <span *ngIf="page < 0" class="page-ellipsis">…</span>
+        <button
+          *ngIf="page > 0"
+          (click)="goToPage(page)"
+          class="page-number"
+          [class.active]="page === currentPage">
+          {{ page }}
+        </button>
+      </ng-container>
+    </div>
+    <button (click)="goToNextPage()" [disabled]="currentPage === totalPages" class="page-btn">
+      Next
+      <span class="material-icons">chevron_right</span>
+    </button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && notices.length === 0">
+    <span class="material-icons empty-icon">campaign</span>
+    <h3>No notices yet</h3>
+    <p>Check back later for updates and announcements</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading notices...</p>
+  </div>
+
+</div>

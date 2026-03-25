@@ -1,0 +1,104 @@
+<div class="page-container">
+
+  <!-- Welcome Section -->
+  <div class="welcome-section">
+    <div class="welcome-content">
+      <h1 class="welcome-title">
+        <span class="wave-emoji">👋</span>
+        Welcome back, {{ studentName }}!
+      </h1>
+      <p class="welcome-subtitle" *ngIf="dueSoonCount > 0">
+        You have <strong>{{ dueSoonCount }}</strong> book{{ dueSoonCount > 1 ? 's' : '' }} due this week
+      </p>
+      <p class="welcome-subtitle" *ngIf="dueSoonCount === 0">
+        All caught up! Keep exploring books.
+      </p>
+    </div>
+    <div class="welcome-illustration">
+      <span class="material-icons">auto_stories</span>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats">
+      <div class="stat-icon" [ngClass]="stat.color">
+        <span class="material-icons">{{ stat.icon }}</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stat.value }}</span>
+        <span class="stat-label">{{ stat.title }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content-layout">
+
+    <!-- Current Books Section -->
+    <div class="content-section">
+      <div class="section-header">
+        <h2>Currently Borrowed</h2>
+        <a class="view-all-link" routerLink="/student/activity">
+          View All
+          <span class="material-icons">arrow_forward</span>
+        </a>
+      </div>
+
+      <div class="books-list" *ngIf="currentBooks.length > 0">
+        <div class="book-item" *ngFor="let book of currentBooks">
+          <div class="book-cover">
+            <img *ngIf="book.image && book.image.trim()" [src]="book.image" [alt]="book.title" class="cover-img" (error)="book.image = ''">
+            <span *ngIf="!book.image || !book.image.trim()" class="material-icons">menu_book</span>
+          </div>
+          <div class="book-details">
+            <h4 class="book-title">{{ book.title }}</h4>
+            <p class="book-author">{{ book.author }}</p>
+            <div class="book-meta">
+              <span class="due-date">
+                <span class="material-icons">event</span>
+                Due: {{ book.due }}
+              </span>
+            </div>
+          </div>
+          <div class="book-status">
+            <span class="status-badge" [class.warning]="book.status === 'Overdue'" [class.danger]="book.status === 'Overdue'" [class.success]="book.status === 'Safe' || book.status === 'Borrowed'">
+              {{ book.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" *ngIf="currentBooks.length === 0">
+        <span class="material-icons empty-icon">menu_book</span>
+        <h3>No books borrowed yet</h3>
+        <p>Start exploring the library to find your next read</p>
+        <a class="btn-primary" routerLink="/student/browse">
+          <span class="material-icons">search</span>
+          Browse Library
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions-section">
+      <h2>Quick Actions</h2>
+      <div class="action-cards">
+        <a class="action-card primary" routerLink="/student/browse">
+          <span class="material-icons">search</span>
+          <span>Browse Books</span>
+        </a>
+        <a class="action-card" routerLink="/student/profile">
+          <span class="material-icons">manage_accounts</span>
+          <span>Edit Profile</span>
+        </a>
+        <a class="action-card" routerLink="/student/notices">
+          <span class="material-icons">campaign</span>
+          <span>Notices</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
