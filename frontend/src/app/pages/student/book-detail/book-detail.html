@@ -27,15 +27,19 @@
   <div *ngIf="!loading && book" class="content">
     <div class="book-card">
       <div class="book-cover">
-        <img
-          *ngIf="book.imageData && book.imageData.trim()"
-          [src]="book.imageData"
-          [alt]="book.title"
-          class="cover-img"
-        />
-        <div *ngIf="!book.imageData || !book.imageData.trim()" class="cover-placeholder">
-          <span class="placeholder-letter">{{ book.title.charAt(0).toUpperCase() }}</span>
-        </div>
+        <ng-container *ngIf="hasImage(); else placeholder">
+          <img
+            [src]="getImageSource()"
+            [alt]="book.title"
+            class="cover-img"
+            (error)="book.imageData = ''"
+          />
+        </ng-container>
+        <ng-template #placeholder>
+          <div class="cover-placeholder">
+            <span class="placeholder-letter">{{ book.title.charAt(0).toUpperCase() }}</span>
+          </div>
+        </ng-template>
         <span class="status-badge" [class.available]="isAvailable()" [class.unavailable]="!isAvailable()">
           {{ statusText }}
         </span>
@@ -44,6 +48,11 @@
       <div class="book-info">
         <h2 class="title">{{ book.title }}</h2>
         <p class="author">by {{ book.author }}</p>
+
+        <div class="book-price" *ngIf="book.price && book.price > 0">
+          <span class="price-label">Price:</span>
+          <span class="price-value">₹{{ book.price }}</span>
+        </div>
 
         <div class="meta-grid">
           <div class="meta-item">
@@ -60,20 +69,33 @@
           </div>
           <div class="meta-item">
             <span class="meta-label">Added</span>
-            <span class="meta-value">{{ book.addedDate | date: 'MMM dd, yyyy' }}</span>
+            <span class="meta-value">{{ book.addedDate ? (book.addedDate | date: 'MMM dd, yyyy') : 'N/A' }}</span>
           </div>
+        </div>
+
+        <div class="book-summary" *ngIf="book.summary">
+          <h4 class="summary-title">Summary</h4>
+          <p class="summary-text">{{ book.summary }}</p>
+        </div>
+
+        <div class="author-info" *ngIf="book.authorInfo">
+          <h4 class="author-title">About Author</h4>
+          <p class="author-text">{{ book.authorInfo }}</p>
         </div>
 
         <div class="actions">
           <button class="btn-primary" [disabled]="!!borrowDisabledReason" (click)="requestBorrow()">
-            <span class="material-icons">add_circle</span>
+            <span class="material-icons">menu_book</span>
             Borrow
           </button>
-          <button class="btn-outline" [disabled]="isAvailable()" (click)="joinWaitlist()">
-            <span class="material-icons">schedule</span>
-            Join Waitlist
+          <button class="btn-buy" *ngIf="book.price && book.price > 0" (click)="buyBook()">
+            <span class="material-icons">shopping_cart</span>
+            Buy - ₹{{ book.price }}
           </button>
-          <div class="hint" *ngIf="borrowDisabledReason">{{ borrowDisabledReason }}</div>
+          <button class="btn-wishlist" (click)="toggleWishlist()" [disabled]="wishlistLoading">
+            <span class="material-icons">{{ inWishlist ? 'favorite' : 'favorite_border' }}</span>
+            {{ inWishlist ? 'In Wishlist' : 'Wishlist' }}
+          </button>
         </div>
       </div>
 

@@ -14,6 +14,9 @@ interface BookForm {
   category: string;
   imageData: string | null;
   totalCopies: number;
+  price: number | null;
+  summary: string | null;
+  authorInfo: string | null;
 }
 
 @Component({
@@ -88,7 +91,10 @@ export class ManageBooksComponent implements OnInit {
       author: '',
       category: '',
       imageData: null,
-      totalCopies: 1
+      totalCopies: 1,
+      price: null,
+      summary: null,
+      authorInfo: null
     };
   }
 
@@ -99,6 +105,9 @@ export class ManageBooksComponent implements OnInit {
       author: ['', Validators.required],
       category: ['', Validators.required],
       totalCopies: [1, [Validators.required, Validators.min(1)]],
+      price: [null],
+      summary: [''],
+      authorInfo: [''],
       imageUrl: ['']
     });
   }
@@ -254,7 +263,10 @@ export class ManageBooksComponent implements OnInit {
       author: book.author,
       category: book.category,
       imageData: book.imageData ?? null,
-      totalCopies: book.totalCopies
+      totalCopies: book.totalCopies,
+      price: book.price || null,
+      summary: book.summary || null,
+      authorInfo: book.authorInfo || null
     };
     this.createForm();
     this.form.patchValue({
@@ -262,7 +274,10 @@ export class ManageBooksComponent implements OnInit {
       isbn: book.isbn,
       author: book.author,
       category: book.category,
-      totalCopies: book.totalCopies
+      totalCopies: book.totalCopies,
+      price: book.price || null,
+      summary: book.summary || '',
+      authorInfo: book.authorInfo || ''
     });
     this.imagePreview = book.imageData ?? null;
     this.selectedImageName = book.imageData ? 'Current saved cover' : '';
@@ -410,7 +425,10 @@ export class ManageBooksComponent implements OnInit {
       author: formValue.author.trim(),
       category: formValue.category,
       imageData: imageData,
-      totalCopies: formValue.totalCopies
+      totalCopies: formValue.totalCopies,
+      price: formValue.price || null,
+      summary: formValue.summary || null,
+      authorInfo: formValue.authorInfo || null
     } as Book;
 
     if (this.isEditMode && this.bookForm.id) {

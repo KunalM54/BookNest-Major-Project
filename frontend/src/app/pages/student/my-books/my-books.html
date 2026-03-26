@@ -32,7 +32,7 @@
 
   <!-- Books List -->
   <div class="books-list" *ngIf="filteredBooks.length > 0">
-    <div class="book-card" *ngFor="let book of paginatedBooks">
+    <div class="book-card" *ngFor="let book of paginatedBooks" [class.overdue-row]="book.isOverdue || book.fineStatus === 'OVERDUE'">
       <div class="book-cover">
         <img *ngIf="book.bookImage && book.bookImage.trim()" [src]="book.bookImage" [alt]="book.title" class="cover-img" (error)="book.bookImage = undefined">
         <span *ngIf="!book.bookImage || !book.bookImage.trim()" class="material-icons">menu_book</span>
@@ -45,16 +45,23 @@
             <span class="material-icons">event</span>
             Borrowed: {{ book.borrowDate | date:'MMM dd, yyyy' }}
           </span>
-          <span class="meta-item" [class.overdue]="book.isOverdue">
+          <span class="meta-item" [class.overdue]="book.isOverdue || book.fineStatus === 'OVERDUE'">
             <span class="material-icons">event_busy</span>
             Due: {{ book.dueDate ? (book.dueDate | date:'MMM dd, yyyy') : 'N/A' }}
           </span>
         </div>
+        <div class="fine-info" *ngIf="book.lateDays > 0">
+          <span class="late-days">Late by {{ book.lateDays }} day{{ book.lateDays !== 1 ? 's' : '' }}</span>
+          <span class="fine-amount">Fine: ₹{{ book.fineAmount }}</span>
+        </div>
+        <div class="fine-info no-fine" *ngIf="!book.lateDays || book.lateDays === 0">
+          <span class="no-fine-text">No Fine</span>
+        </div>
       </div>
       <div class="book-status">
-        <span class="status-badge" [class.warning]="book.isOverdue" [class.success]="!book.isOverdue">
-          <span class="material-icons">{{ book.isOverdue ? 'error' : 'check_circle' }}</span>
-          {{ book.isOverdue ? 'Overdue' : 'Active' }}
+        <span class="status-badge" [class.warning]="book.isOverdue || book.fineStatus === 'OVERDUE'" [class.success]="!book.isOverdue && book.fineStatus !== 'OVERDUE'" [class.info]="book.fineStatus === 'RETURNED_LATE'">
+          <span class="material-icons">{{ book.isOverdue || book.fineStatus === 'OVERDUE' ? 'error' : (book.fineStatus === 'RETURNED_LATE' ? 'schedule' : 'check_circle') }}</span>
+          {{ book.fineStatus === 'RETURNED_LATE' ? 'Returned Late' : (book.isOverdue || book.fineStatus === 'OVERDUE' ? 'Overdue' : (book.returnDate ? 'Returned' : 'Active')) }}
         </span>
       </div>
     </div>

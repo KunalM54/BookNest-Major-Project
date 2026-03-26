@@ -1,0 +1,67 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">favorite</span>
+        My Wishlist
+      </h1>
+      <p class="page-subtitle">Books you've saved for later</p>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading wishlist...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && wishlistItems.length === 0" class="empty-state">
+    <span class="material-icons empty-icon">favorite_border</span>
+    <h3>Your wishlist is empty</h3>
+    <p>Browse books and add them to your wishlist</p>
+    <a class="btn-primary" routerLink="/student/browse">
+      <span class="material-icons">search</span>
+      Browse Books
+    </a>
+  </div>
+
+  <div *ngIf="!isLoading && wishlistItems.length > 0" class="wishlist-grid">
+    <div class="wishlist-card" *ngFor="let item of wishlistItems">
+      <div class="card-cover" (click)="viewBook(item.id)">
+        <img
+          *ngIf="hasImage(item)"
+          [src]="getImageSource(item)"
+          [alt]="item.title"
+          class="cover-img"
+        />
+        <div *ngIf="!hasImage(item)" class="cover-placeholder">
+          <span class="placeholder-letter">{{ item.title.charAt(0).toUpperCase() }}</span>
+        </div>
+        <span class="status-badge" [class.available]="item.availableCopies > 0">
+          {{ item.availableCopies > 0 ? 'Available' : 'Out of Stock' }}
+        </span>
+      </div>
+      <div class="card-content">
+        <h3 class="book-title" (click)="viewBook(item.id)">{{ item.title }}</h3>
+        <p class="book-author">{{ item.author }}</p>
+        <p class="book-category">{{ item.category }}</p>
+        <div class="book-price" *ngIf="item.price && item.price > 0">
+          ₹{{ item.price }}
+        </div>
+        <div class="card-actions">
+          <button class="btn-view" (click)="viewBook(item.id)">
+            <span class="material-icons">visibility</span>
+            View
+          </button>
+          <button class="btn-remove" (click)="removeFromWishlist(item.id)">
+            <span class="material-icons">delete</span>
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

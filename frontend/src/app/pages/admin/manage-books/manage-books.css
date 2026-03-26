@@ -195,6 +195,7 @@
 .col-title { min-width: 250px; }
 .col-author { min-width: 150px; }
 .col-category { width: 120px; }
+.col-price { width: 80px; }
 .col-copies { width: 100px; }
 .col-status { width: 120px; }
 .col-actions { width: 100px; }

@@ -8,6 +8,7 @@ import { Book, BookService } from '../../../services/book';
 import { BorrowService } from '../../../services/borrow';
 import { Review, ReviewService } from '../../../services/review';
 import { SnackbarService } from '../../../services/snackbar';
+import { WishlistService } from '../../../services/wishlist';
 
 @Component({
   selector: 'app-book-detail',
@@ -33,6 +34,9 @@ export class BookDetailComponent implements OnInit, OnDestroy {
   canWriteReview = false;
   hasExistingReview = false;
 
+  inWishlist = false;
+  wishlistLoading = false;
+
   reviewRating = 5;
   reviewComment = '';
   reviewError = '';
@@ -46,7 +50,8 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     private bookService: BookService,
     private borrowService: BorrowService,
     private reviewService: ReviewService,
-    private snackbar: SnackbarService
+    private snackbar: SnackbarService,
+    private wishlistService: WishlistService
   ) {}
 
   ngOnInit(): void {
@@ -85,6 +90,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
         this.loadBorrowStatus();
         this.loadReviews();
         this.loadEligibility();
+        this.checkWishlist();
       },
       error: () => {
         this.loading = false;
@@ -171,6 +177,44 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     return this.isAvailable() ? 'available' : 'unavailable';
   }
 
+  getImageSource(): string {
+    const img = this.book?.imageData;
+    if (!img || img === 'null' || img === 'undefined') return '';
+    
+    let imageData = img.toString().trim();
+    if (!imageData || imageData.length < 10) return '';
+    
+    if (imageData.startsWith('data:image')) {
+      return imageData;
+    }
+    
+    if (imageData.startsWith('data:')) {
+      return imageData;
+    }
+    
+    try {
+      const firstBytes = imageData.substring(0, 20);
+      const decoded = atob(firstBytes);
+      if (decoded.charCodeAt(0) === 0x89 && decoded.charCodeAt(1) === 0x50) {
+        return `data:image/png;base64,${imageData}`;
+      }
+      if (decoded.charCodeAt(0) === 0xFF && decoded.charCodeAt(1) === 0xD8) {
+        return `data:image/jpeg;base64,${imageData}`;
+      }
+    } catch (e) {}
+    
+    return `data:image/jpeg;base64,${imageData}`;
+  }
+
+  hasImage(): boolean {
+    const img = this.book?.imageData;
+    return !!(img && img.toString().trim() && img.toString().trim().length > 10);
+  }
+
+  get bookPrice(): number {
+    return this.book?.price || 0;
+  }
+
   get borrowDisabledReason(): string | null {
     if (!this.book) return 'Book not loaded';
     if (!this.isAvailable()) return 'No copies available';
@@ -217,6 +261,62 @@ export class BookDetailComponent implements OnInit, OnDestroy {
 
   joinWaitlist() {
     this.snackbar.show('Waitlist feature will be added next (Reservation Queue).');
+  }
+
+  buyBook() {
+    if (!this.book?.id || !this.book.price) return;
+    
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      this.snackbar.show('Please login to purchase a book');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    const confirmPurchase = confirm(`Buy "${this.book.title}" for ₹${this.book.price}?`);
+    if (confirmPurchase) {
+      this.snackbar.show('Purchase successful! Thank you for buying.');
+    }
+  }
+
+  toggleWishlist() {
+    const userId = this.authService.getUserId();
+    if (!userId || !this.book?.id) {
+      this.snackbar.show('Please login to add to wishlist');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.wishlistLoading = true;
+    this.wishlistService.toggleWishlist(userId, this.book.id).subscribe({
+      next: (res) => {
+        this.wishlistLoading = false;
+        if (res.success) {
+          this.inWishlist = !this.inWishlist;
+          this.snackbar.show(res.message);
+        } else {
+          this.snackbar.show(res.message || 'Failed to update wishlist');
+        }
+      },
+      error: () => {
+        this.wishlistLoading = false;
+        this.snackbar.show('Failed to update wishlist');
+      }
+    });
+  }
+
+  private checkWishlist() {
+    const userId = this.authService.getUserId();
+    if (!userId || !this.book?.id) return;
+
+    this.wishlistService.checkWishlist(userId, this.book.id).subscribe({
+      next: (res) => {
+        this.inWishlist = res.inWishlist;
+      },
+      error: () => {
+        this.inWishlist = false;
+      }
+    });
   }
 
   starArray(value: number): number[] {

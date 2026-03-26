@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BorrowService } from '../../../services/borrow';
 import { AuthService } from '../../../services/auth';
+import { FineService } from '../../../services/fine';
 import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 import { scrollToTop } from '../../../utils/scroll-to-top';
 
@@ -29,7 +30,8 @@ export class MyBooksComponent implements OnInit {
 
   constructor(
     private borrowService: BorrowService,
-    private authService: AuthService
+    private authService: AuthService,
+    private fineService: FineService
   ) { }
 
   ngOnInit() {
@@ -50,6 +52,7 @@ export class MyBooksComponent implements OnInit {
       next: (books) => {
         if (books.length === 0) {
           this.errorMessage = 'No books borrowed currently.';
+          this.borrowedBooks = [];
         } else {
           this.borrowedBooks = books.map((book: any) => ({
             id: book.id,
@@ -58,9 +61,11 @@ export class MyBooksComponent implements OnInit {
             bookImage: book.bookImage || null,
             borrowDate: book.requestDate || book.borrowDate,
             dueDate: book.dueDate,
+            returnDate: book.returnDate,
             status: book.status,
             isOverdue: book.status === 'OVERDUE' || (book.dueDate && new Date(book.dueDate) < new Date())
           }));
+          this.calculateFines(userId);
         }
         this.applyFilters();
         this.isLoading = false;
@@ -70,6 +75,34 @@ export class MyBooksComponent implements OnInit {
         this.errorMessage = 'Failed to load your books. Please try again.';
         this.isLoading = false;
       }
+    });
+  }
+
+  calculateFines(userId: number) {
+    this.fineService.calculateFinesForStudent(userId).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          const fineMap = new Map();
+          res.data.forEach((fine: any) => {
+            fineMap.set(fine.borrowId, fine);
+          });
+          
+          this.borrowedBooks = this.borrowedBooks.map(book => {
+            const fineInfo = fineMap.get(book.id);
+            if (fineInfo) {
+              return {
+                ...book,
+                lateDays: fineInfo.lateDays,
+                fineAmount: fineInfo.fineAmount,
+                fineStatus: fineInfo.status
+              };
+            }
+            return book;
+          });
+          this.applyFilters();
+        }
+      },
+      error: () => {}
     });
   }
 

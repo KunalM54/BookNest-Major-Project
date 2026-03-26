@@ -191,6 +191,44 @@
   color: #DC2626;
 }
 
+.fine-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #FEF2F2;
+  border-radius: 8px;
+  width: fit-content;
+}
+
+.fine-info.no-fine {
+  background: #F0FDF4;
+}
+
+.late-days {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #DC2626;
+}
+
+.fine-amount {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #DC2626;
+}
+
+.no-fine-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #047857;
+}
+
+.overdue-row {
+  border-left: 4px solid #DC2626;
+  background: #FEF2F2;
+}
+
 .book-status {
   flex-shrink: 0;
 }
@@ -218,6 +256,11 @@
 .status-badge.warning {
   background: #FEE2E2;
   color: #DC2626;
+}
+
+.status-badge.info {
+  background: #DBEAFE;
+  color: #1D4ED8;
 }
 
 /* ===== EMPTY STATE ===== */

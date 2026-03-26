@@ -12,6 +12,9 @@ export interface Book {
   totalCopies: number;
   availableCopies: number;
   addedDate?: string;
+  summary?: string;
+  authorInfo?: string;
+  price?: number;
 }
 
 @Injectable({

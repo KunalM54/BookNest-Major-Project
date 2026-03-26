@@ -1,0 +1,91 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">account_balance_wallet</span>
+        My Fines
+      </h1>
+      <p class="page-subtitle">View and pay your late return fines</p>
+    </div>
+    <div class="header-actions" *ngIf="totalPending > 0">
+      <button class="btn-pay-all" (click)="payAllFines()">
+        <span class="material-icons">payments</span>
+        Pay All (₹{{ totalPending }})
+      </button>
+    </div>
+  </div>
+
+  <div class="summary-card" *ngIf="totalPending > 0">
+    <div class="summary-item">
+      <span class="summary-label">Total Pending</span>
+      <span class="summary-value">₹{{ totalPending }}</span>
+    </div>
+    <div class="summary-item">
+      <span class="summary-label">Pending Fines</span>
+      <span class="summary-value">{{ fines.length }}</span>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading fines...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="!isLoading && fines.length === 0" class="empty-state">
+    <span class="material-icons empty-icon">check_circle</span>
+    <h3>No fines</h3>
+    <p>You have no pending fines. Keep returning books on time!</p>
+  </div>
+
+  <div *ngIf="!isLoading && fines.length > 0" class="fines-list">
+    <div class="fine-card" *ngFor="let fine of fines">
+      <div class="fine-info">
+        <div class="fine-book">
+          <span class="material-icons">menu_book</span>
+          <div>
+            <h4>{{ fine.borrow?.book?.title || 'Book' }}</h4>
+            <p>{{ fine.borrow?.book?.author || 'Unknown Author' }}</p>
+          </div>
+        </div>
+        <div class="fine-details">
+          <div class="detail-item">
+            <span class="label">Days Overdue</span>
+            <span class="value">{{ fine.daysOverdue }} days</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Fine/Day</span>
+            <span class="value">₹{{ fine.finePerDay }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Total Fine</span>
+            <span class="value amount">₹{{ fine.fineAmount }}</span>
+          </div>
+        </div>
+        <div class="fine-date">
+          <span class="label">Created</span>
+          <span class="value">{{ fine.createdAt | date: 'MMM dd, yyyy' }}</span>
+        </div>
+      </div>
+      <div class="fine-actions">
+        <span class="status-badge" [class]="getStatusClass(fine.status)">
+          {{ fine.status }}
+        </span>
+        <button 
+          *ngIf="fine.status === 'PENDING'" 
+          class="btn-pay"
+          [disabled]="processingPayment === fine.id"
+          (click)="payFine(fine.id)">
+          <span class="material-icons">{{ processingPayment === fine.id ? 'hourglass_top' : 'payment' }}</span>
+          {{ processingPayment === fine.id ? 'Processing...' : 'Pay Now' }}
+        </button>
+        <span *ngIf="fine.status === 'PAID'" class="paid-date">
+          Paid on {{ fine.paidAt | date: 'MMM dd, yyyy' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -36,6 +36,15 @@ public class Book {
     @Column(name = "added_date", nullable = false, updatable = false)
     private LocalDate addedDate;
 
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
+    @Column(columnDefinition = "TEXT")
+    private String authorInfo;
+
+    @Column(name = "price")
+    private Double price;
+
     @PrePersist
     protected void onCreate() {
         this.addedDate = LocalDate.now();
@@ -127,5 +136,29 @@ public class Book {
 
     public void setAddedDate(LocalDate addedDate) {
         this.addedDate = addedDate;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getAuthorInfo() {
+        return authorInfo;
+    }
+
+    public void setAuthorInfo(String authorInfo) {
+        this.authorInfo = authorInfo;
+    }
+
+    public Double getPrice() {
+        return price;
+    }
+
+    public void setPrice(Double price) {
+        this.price = price;
     }
 }
