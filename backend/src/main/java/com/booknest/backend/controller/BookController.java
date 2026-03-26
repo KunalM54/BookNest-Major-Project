@@ -4,6 +4,8 @@ import com.booknest.backend.model.Book;
 import com.booknest.backend.repository.BookRepository;
 import com.booknest.backend.repository.BorrowRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +37,12 @@ public class BookController {
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
         return ResponseEntity.ok(bookRepository.findAll());
+    }
+
+    // Server-side pagination (non-breaking: new endpoint)
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Book>> getBooksPaged(Pageable pageable) {
+        return ResponseEntity.ok(bookRepository.findAll(pageable));
     }
 
     // Get book by ID
@@ -99,6 +107,10 @@ public class BookController {
 
         book.setImageData(normalizeImageData(book.getImageData()));
 
+        // Optional extended fields
+        book.setSummary(book.getSummary() == null ? null : book.getSummary().trim());
+        book.setAuthorInfo(book.getAuthorInfo() == null ? null : book.getAuthorInfo().trim());
+
         Book savedBook = bookRepository.save(book);
         response.put("success", true);
         response.put("message", "Book added successfully");
@@ -131,6 +143,16 @@ public class BookController {
                     book.setIsbn(bookDetails.getIsbn());
                     book.setAuthor(bookDetails.getAuthor());
                     book.setCategory(bookDetails.getCategory());
+
+                    if (bookDetails.getPrice() != null) {
+                        book.setPrice(bookDetails.getPrice());
+                    }
+                    if (bookDetails.getSummary() != null) {
+                        book.setSummary(bookDetails.getSummary().trim());
+                    }
+                    if (bookDetails.getAuthorInfo() != null) {
+                        book.setAuthorInfo(bookDetails.getAuthorInfo().trim());
+                    }
 
                     // Only update image if a new one is provided; preserve existing image otherwise
                     String newImageData = normalizeImageData(bookDetails.getImageData());

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BorrowService } from '../../../services/borrow';
@@ -14,7 +14,7 @@ import { scrollToTop } from '../../../utils/scroll-to-top';
   templateUrl: './my-books.html',
   styleUrls: ['./my-books.css']
 })
-export class MyBooksComponent implements OnInit {
+export class MyBooksComponent implements OnInit, OnDestroy {
 
   borrowedBooks: any[] = [];
   filteredBooks: any[] = [];
@@ -28,6 +28,9 @@ export class MyBooksComponent implements OnInit {
   pageSize = 10;
   totalPages = 1;
 
+  private refreshTimer: any;
+  private currentUserId: number | null = null;
+
   constructor(
     private borrowService: BorrowService,
     private authService: AuthService,
@@ -38,12 +41,21 @@ export class MyBooksComponent implements OnInit {
     this.loadBooks();
   }
 
+  ngOnDestroy(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
   loadBooks() {
     const userId = this.authService.getUserId();
     if (!userId) {
       this.errorMessage = 'Please login to view your books';
       return;
     }
+
+    this.currentUserId = userId;
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -66,6 +78,15 @@ export class MyBooksComponent implements OnInit {
             isOverdue: book.status === 'OVERDUE' || (book.dueDate && new Date(book.dueDate) < new Date())
           }));
           this.calculateFines(userId);
+
+          if (!this.refreshTimer) {
+            // Keep fines live for overdue borrows.
+            this.refreshTimer = setInterval(() => {
+              if (this.currentUserId) {
+                this.calculateFines(this.currentUserId);
+              }
+            }, 60_000);
+          }
         }
         this.applyFilters();
         this.isLoading = false;
@@ -79,28 +100,47 @@ export class MyBooksComponent implements OnInit {
   }
 
   calculateFines(userId: number) {
-    this.fineService.calculateFinesForStudent(userId).subscribe({
+    this.fineService.getFinesByStudent(userId).subscribe({
       next: (res) => {
-        if (res.success && res.data) {
-          const fineMap = new Map();
-          res.data.forEach((fine: any) => {
-            fineMap.set(fine.borrowId, fine);
-          });
-          
-          this.borrowedBooks = this.borrowedBooks.map(book => {
-            const fineInfo = fineMap.get(book.id);
-            if (fineInfo) {
-              return {
-                ...book,
-                lateDays: fineInfo.lateDays,
-                fineAmount: fineInfo.fineAmount,
-                fineStatus: fineInfo.status
-              };
-            }
-            return book;
-          });
-          this.applyFilters();
-        }
+        if (!res?.data) return;
+
+        const fineMap = new Map<number, any>();
+        (res.data || []).forEach((fine: any) => {
+          const borrowId = fine?.borrow?.id;
+          if (borrowId != null) {
+            fineMap.set(Number(borrowId), fine);
+          }
+        });
+
+        this.borrowedBooks = this.borrowedBooks.map((book) => {
+          const fine = fineMap.get(book.id);
+          if (!fine) {
+            return {
+              ...book,
+              lateDays: 0,
+              fineAmount: 0,
+              paidAmount: 0,
+              totalFine: 0,
+              fineStatus: book.isOverdue ? 'OVERDUE' : 'ACTIVE'
+            };
+          }
+
+          const totalFine = Number(fine.fineAmount || 0);
+          const paidAmount = Number(fine.paidAmount || 0);
+          const outstanding = Math.max(0, Math.round((totalFine - paidAmount) * 100) / 100);
+
+          return {
+            ...book,
+            lateDays: Number(fine.daysOverdue || 0),
+            // Show outstanding fine (dynamic) on UI.
+            fineAmount: outstanding,
+            paidAmount,
+            totalFine,
+            fineStatus: book.isOverdue ? 'OVERDUE' : 'ACTIVE'
+          };
+        });
+
+        this.applyFilters();
       },
       error: () => {}
     });

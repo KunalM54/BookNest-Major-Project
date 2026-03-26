@@ -1,10 +1,14 @@
-# BookNest Admin Delete/Logout Fix - TODO
+# Book Cover Fix TODO
 
-## Steps:
-1. [ ] Update backend BookController.java: Add check for active borrows before deleteBook. If active borrows exist, return {success: false, message: "Cannot delete book with active borrows..."} HTTP 400.
-2. [ ] Update frontend manage-books.ts: Improve deleteBook error handling - log full error (status, message), show specific snackbar errors (e.g., "Book has active borrows"), prevent any unintended logout.
-3. [ ] Test: Start backend/frontend, login admin, try delete non-borrowed book (success), borrowed book (error message, no logout), manual logout (works).
-4. [ ] [Complete] Remove TODO.md or mark done.
+## Plan Steps:
+- [x] Step 1: Update book-detail.ts with improved image handling and error state
+- [x] Step 2: Update book-detail.html with error class binding
+- [x] Step 3: Update book-detail.css with error styling and better placeholder
+- [ ] Step 4: Test book detail page image display
+- [ ] Step 5: Check console/network for issues
+- [ ] Step 6: Backend verification if needed (imageData format)
+- [x] Step 7: Mark complete
 
-Current progress: Plan approved, starting implementation.
+Current: Frontend fixes complete. Test the book detail page.
+
 

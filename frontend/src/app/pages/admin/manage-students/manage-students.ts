@@ -21,6 +21,10 @@ export class ManageStudentsComponent implements OnInit {
   filteredStudents: Student[] = [];
   paginatedStudents: Student[] = [];
   isLoading = false;
+
+  totalStudentsCount = 0;
+  pagingMode: 'server' | 'client' = 'server';
+  private hasLoadedAllStudents = false;
   
   currentPage = 1;
   pageSize = 10;
@@ -29,14 +33,41 @@ export class ManageStudentsComponent implements OnInit {
   constructor(private userService: UserService) { }
 
   ngOnInit() {
-    this.loadStudents();
+    this.refreshStudents(true);
   }
 
-  loadStudents() {
+  private isClientMode(): boolean {
+    return this.searchTerm.trim().length > 0 || this.statusFilter !== 'all';
+  }
+
+  private refreshStudents(resetPage = true) {
+    if (resetPage) {
+      this.currentPage = 1;
+    }
+
+    if (this.isClientMode()) {
+      this.pagingMode = 'client';
+
+      if (this.hasLoadedAllStudents) {
+        this.applyFilters();
+        return;
+      }
+
+      this.loadStudentsAll();
+      return;
+    }
+
+    this.pagingMode = 'server';
+    this.loadStudentsPaged();
+  }
+
+  private loadStudentsAll() {
     this.isLoading = true;
     this.userService.getAllStudents().subscribe({
       next: (data: Student[]) => {
         this.students = data;
+        this.hasLoadedAllStudents = true;
+        this.totalStudentsCount = data.length;
         this.applyFilters();
         this.isLoading = false;
       },
@@ -47,9 +78,33 @@ export class ManageStudentsComponent implements OnInit {
     });
   }
 
+  private loadStudentsPaged() {
+    this.isLoading = true;
+    const pageIndex = Math.max(0, this.currentPage - 1);
+
+    this.userService.getStudentsPaged(pageIndex, this.pageSize, 'id,desc').subscribe({
+      next: (page) => {
+        const content = page?.content || [];
+        this.paginatedStudents = content;
+        this.filteredStudents = content;
+        this.students = [];
+        this.totalStudentsCount = Number(page?.totalElements || content.length);
+        this.totalPages = Math.max(1, Number(page?.totalPages || 1));
+        this.isLoading = false;
+      },
+      error: (error: any) => {
+        console.error('Error loading students:', error);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  loadStudents() {
+    this.refreshStudents(true);
+  }
+
   onSearchChange() {
-    this.currentPage = 1;
-    this.applyFilters();
+    this.refreshStudents(true);
   }
 
   applyFilters() {
@@ -82,7 +137,13 @@ export class ManageStudentsComponent implements OnInit {
   goToPage(page: number) {
     if (page < 1 || page > this.totalPages || page === this.currentPage) return;
     this.currentPage = page;
-    this.updatePagination();
+
+    if (this.pagingMode === 'server') {
+      this.loadStudentsPaged();
+    } else {
+      this.updatePagination();
+    }
+
     scrollToTop();
   }
 
@@ -140,7 +201,7 @@ export class ManageStudentsComponent implements OnInit {
 
   filterStatus(event: any) {
     this.statusFilter = event.target.value;
-    this.applyFilters();
+    this.refreshStudents(true);
   }
 
   blockStudent(student: Student) {

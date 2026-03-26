@@ -48,6 +48,14 @@ public class UserService {
             "^(?=\\S{6,64}$)(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$"
     );
 
+    public String validatePasswordStrength(String password) {
+        String value = password == null ? "" : password;
+        if (!STRONG_PASSWORD_PATTERN.matcher(value).matches()) {
+            return "Password must be 6 to 64 characters and include uppercase, lowercase, and number";
+        }
+        return null;
+    }
+
     public AuthResponse register(RegisterRequest request) {
         String fullName = normalizeFullName(request.getFullName());
         String studentId = normalizeStudentId(request.getSID());

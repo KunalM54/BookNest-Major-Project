@@ -68,35 +68,63 @@ export class WishlistComponent implements OnInit {
 
   getImageSource(item: WishlistItem): string {
     const img = item.imageData;
-    if (!img) return '';
+    if (!img || img === 'null' || img === 'undefined') return '';
     
     let imageData = img.toString().trim();
     if (!imageData) return '';
-    
-    if (imageData.startsWith('data:image')) {
+
+    if (imageData.startsWith('www.')) {
+      imageData = `https://${imageData}`;
+    }
+
+    const isLikelyBase64 = (value: string): boolean => {
+      const v = value.replace(/\s/g, '');
+      if (v.length < 40) return false;
+      return /^[A-Za-z0-9+/=_-]+$/.test(v);
+    };
+
+    if (/^(https?:\/\/|\/|assets\/)/i.test(imageData)) {
       return imageData;
     }
-    
-    if (imageData.startsWith('data:')) {
+
+    if (imageData.startsWith('data:image') || imageData.startsWith('data:')) {
       return imageData;
     }
-    
+
+    if (!isLikelyBase64(imageData)) {
+      return '';
+    }
+
+    imageData = imageData.replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/');
+    let padded = imageData.padEnd(imageData.length + (4 - imageData.length % 4) % 4, '=');
+
     try {
-      const firstBytes = imageData.substring(0, 20);
+      const firstBytes = padded.substring(0, 32);
       const decoded = atob(firstBytes);
+
       if (decoded.charCodeAt(0) === 0x89 && decoded.charCodeAt(1) === 0x50) {
-        return `data:image/png;base64,${imageData}`;
+        return `data:image/png;base64,${padded}`;
       }
       if (decoded.charCodeAt(0) === 0xFF && decoded.charCodeAt(1) === 0xD8) {
-        return `data:image/jpeg;base64,${imageData}`;
+        return `data:image/jpeg;base64,${padded}`;
+      }
+      if (decoded.charCodeAt(0) === 0x47 && decoded.charCodeAt(1) === 0x49) {
+        return `data:image/gif;base64,${padded}`;
       }
     } catch (e) {}
-    
-    return `data:image/jpeg;base64,${imageData}`;
+
+    return `data:image/jpeg;base64,${padded}`;
   }
 
   hasImage(item: WishlistItem): boolean {
     const img = item.imageData;
-    return !!(img && img.toString().trim() && img.toString().trim().length > 10);
+    if (!img) return false;
+    let value = img.toString().trim();
+    if (!value) return false;
+    if (value.startsWith('www.')) value = `https://${value}`;
+    if (value.startsWith('data:')) return true;
+    if (/^(https?:\/\/|\/|assets\/)/i.test(value)) return true;
+    const v = value.replace(/\s/g, '');
+    return v.length >= 40 && /^[A-Za-z0-9+/=_-]+$/.test(v);
   }
 }

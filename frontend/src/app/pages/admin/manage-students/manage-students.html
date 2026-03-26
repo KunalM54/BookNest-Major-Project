@@ -91,7 +91,7 @@
     <!-- Table Footer -->
     <div class="table-footer" *ngIf="filteredStudents.length > 0">
       <div class="footer-info">
-        Showing <strong>{{ paginatedStudents.length }}</strong> of <strong>{{ filteredStudents.length }}</strong> students
+        Showing <strong>{{ paginatedStudents.length }}</strong> of <strong>{{ pagingMode === 'server' ? totalStudentsCount : filteredStudents.length }}</strong> students
       </div>
       <div class="pagination" *ngIf="totalPages > 1">
         <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">

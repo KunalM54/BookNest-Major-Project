@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FineService, Fine } from '../../../services/fine';
 import { AuthService } from '../../../services/auth';
@@ -11,12 +11,13 @@ import { SnackbarService } from '../../../services/snackbar';
   templateUrl: './fines.html',
   styleUrls: ['./fines.css']
 })
-export class FinesComponent implements OnInit {
+export class FinesComponent implements OnInit, OnDestroy {
   fines: Fine[] = [];
   totalPending = 0;
   isLoading = false;
   errorMessage = '';
   processingPayment: number | null = null;
+  private refreshTimer: any;
 
   constructor(
     private fineService: FineService,
@@ -26,16 +27,27 @@ export class FinesComponent implements OnInit {
 
   ngOnInit() {
     this.loadFines();
+    // Dynamic overdue fines increase over time, so refresh periodically.
+    this.refreshTimer = setInterval(() => this.loadFines(true), 60_000);
   }
 
-  loadFines() {
+  ngOnDestroy(): void {
+    if (this.refreshTimer) {
+      clearInterval(this.refreshTimer);
+      this.refreshTimer = null;
+    }
+  }
+
+  loadFines(silent = false) {
     const userId = this.authService.getUserId();
     if (!userId) {
       this.errorMessage = 'Please login to view your fines';
       return;
     }
 
-    this.isLoading = true;
+    if (!silent) {
+      this.isLoading = true;
+    }
     this.errorMessage = '';
 
     this.fineService.getFinesByStudent(userId).subscribe({
@@ -52,7 +64,9 @@ export class FinesComponent implements OnInit {
   }
 
   payFine(fineId: number) {
-    const confirmPay = confirm('Pay this fine now?');
+    const fine = this.fines.find((f) => f.id === fineId);
+    const outstanding = fine ? this.getOutstanding(fine) : 0;
+    const confirmPay = confirm(`Pay outstanding fine ₹${outstanding}?`);
     if (!confirmPay) return;
 
     this.processingPayment = fineId;
@@ -109,5 +123,15 @@ export class FinesComponent implements OnInit {
 
   getStatusClass(status: string): string {
     return status === 'PENDING' ? 'pending' : 'paid';
+  }
+
+  getOutstanding(fine: Fine): number {
+    const total = Number(fine.fineAmount || 0);
+    const paid = Number(fine.paidAmount || 0);
+    return Math.max(0, Math.round((total - paid) * 100) / 100);
+  }
+
+  get pendingCount(): number {
+    return this.fines.filter((f) => f.status === 'PENDING').length;
   }
 }

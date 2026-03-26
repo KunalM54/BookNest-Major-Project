@@ -7,6 +7,7 @@ export interface Fine {
   daysOverdue: number;
   fineAmount: number;
   finePerDay: number;
+  paidAmount?: number;
   status: 'PENDING' | 'PAID';
   createdAt: string;
   paidAt?: string;

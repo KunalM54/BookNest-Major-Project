@@ -43,6 +43,13 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
     List<Borrow> findByStudent(User student);
 
+    List<Borrow> findByStudentIdOrderByRequestDateDesc(Long studentId);
+
+    // Borrows that should have a fine (returned late or currently overdue).
+    // Fine calculation itself must not depend on status.
+    @Query("SELECT b FROM Borrow b WHERE b.dueDate IS NOT NULL AND ((b.returnDate IS NULL AND b.dueDate < CURRENT_DATE) OR (b.returnDate IS NOT NULL AND b.returnDate > b.dueDate))")
+    List<Borrow> findBorrowsWithPotentialFines();
+
     // FIX: Include OVERDUE status so student's overdue books appear in My Books
     @Query("SELECT b FROM Borrow b WHERE b.student.id = :studentId AND b.status IN ('APPROVED', 'OVERDUE') ORDER BY b.requestDate DESC")
     List<Borrow> findMyBooksByStudentId(Long studentId);

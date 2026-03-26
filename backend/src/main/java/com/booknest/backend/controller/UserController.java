@@ -7,6 +7,8 @@ import com.booknest.backend.repository.UserRepository;
 import com.booknest.backend.service.UserService;
 import com.booknest.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +48,22 @@ public class UserController {
                 ))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
+    }
+
+    // Server-side pagination (students only)
+    @GetMapping("/paged")
+    public ResponseEntity<Page<StudentDTO>> getStudentsPaged(Pageable pageable) {
+        Page<User> page = userRepository.findByRole(User.Role.STUDENT, pageable);
+        Page<StudentDTO> dtoPage = page.map(user -> new StudentDTO(
+                user.getId(),
+                user.getFullName(),
+                user.getStudentId(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.isActive(),
+                borrowRepository.countByStudent(user)
+        ));
+        return ResponseEntity.ok(dtoPage);
     }
 
     // Get current logged-in user's profile from JWT token
@@ -221,6 +239,13 @@ public class UserController {
                     if (!isValidPassword) {
                         response.put("success", false);
                         response.put("message", "Current password is incorrect");
+                        return ResponseEntity.badRequest().body(response);
+                    }
+
+                    String strengthError = userService.validatePasswordStrength(newPassword);
+                    if (strengthError != null) {
+                        response.put("success", false);
+                        response.put("message", strengthError);
                         return ResponseEntity.badRequest().body(response);
                     }
                     

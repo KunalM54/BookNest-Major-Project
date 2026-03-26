@@ -227,17 +227,42 @@ export class BrowseBooksComponent implements OnInit, OnDestroy {
     
     // Clean the image data
     let imageData = book.imageData.trim();
+
+    if (imageData.startsWith('www.')) {
+      imageData = `https://${imageData}`;
+    }
+
+    const isLikelyBase64 = (value: string): boolean => {
+      const v = value.replace(/\s/g, '');
+      if (v.length < 40) return false;
+      return /^[A-Za-z0-9+/=_-]+$/.test(v);
+    };
+
+    // Remote URL or local path
+    if (/^(https?:\/\/|\/|assets\/)/i.test(imageData)) {
+      return imageData;
+    }
     
     // If it already has data: prefix, return as-is
     if (imageData.startsWith('data:')) {
       return imageData;
     }
+
+    if (!isLikelyBase64(imageData)) {
+      return '';
+    }
+
+    // Normalize base64/base64url and padding so browsers can render reliably
+    imageData = imageData.replace(/\s/g, '');
+    imageData = imageData.replace(/-/g, '+').replace(/_/g, '/');
+    imageData = imageData.padEnd(imageData.length + (4 - (imageData.length % 4)) % 4, '=');
     
     // If it's pure base64, we need to detect the type
     // Try to detect PNG by checking the first few bytes after decoding
     try {
       // Base64 decode a small portion
-      const decoded = atob(imageData.substring(0, 16));
+      const sample = imageData.substring(0, 32);
+      const decoded = atob(sample);
       // Check for PNG magic bytes: 89 50 4E 47 (hex) = \x89PNG
       if (decoded.startsWith('\x89PNG')) {
         return `data:image/png;base64,${imageData}`;
@@ -248,7 +273,6 @@ export class BrowseBooksComponent implements OnInit, OnDestroy {
       }
     } catch (e) {
       // If decoding fails, try common formats
-      console.log('Could not detect image type, trying JPEG');
     }
     
     // Default to JPEG

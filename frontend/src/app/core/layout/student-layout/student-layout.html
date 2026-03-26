@@ -9,6 +9,14 @@
       <h1 class="page-title">Student Portal</h1>
     </div>
     <div class="navbar-right">
+      <nav class="quick-actions" aria-label="Quick actions">
+        <a class="quick-action" routerLink="/student/wishlist" routerLinkActive="active" title="Wishlist">
+          <span class="material-icons">favorite</span>
+        </a>
+        <a class="quick-action" routerLink="/student/fines" routerLinkActive="active" title="My Fines">
+          <span class="material-icons">account_balance_wallet</span>
+        </a>
+      </nav>
       <div class="user-badge">
         <div class="user-avatar">{{ studentInitials }}</div>
         <div class="user-info">

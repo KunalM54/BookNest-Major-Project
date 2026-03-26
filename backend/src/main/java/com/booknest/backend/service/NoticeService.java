@@ -4,6 +4,8 @@ import com.booknest.backend.model.Notice;
 import com.booknest.backend.model.NoticePriority;
 import com.booknest.backend.repository.NoticeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,12 @@ public class NoticeService {
     public List<Notice> getAllNotices() {
         backfillLegacyNoticeSchema();
         return noticeRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Transactional
+    public Page<Notice> getNoticesPaged(Pageable pageable) {
+        backfillLegacyNoticeSchema();
+        return noticeRepository.findAll(pageable);
     }
 
     // Get notice by ID
@@ -90,4 +98,3 @@ public class NoticeService {
         return value == null ? null : value.trim();
     }
 }
-

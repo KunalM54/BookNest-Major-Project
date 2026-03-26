@@ -59,7 +59,9 @@
         <tr *ngFor="let book of paginatedBooks" class="table-row">
           <td class="col-cover">
             <div class="book-cover">
-              <img *ngIf="book.imageData; else adminCoverFallback" [src]="book.imageData" [alt]="book.title" class="cover-img">
+              <ng-container *ngIf="getCoverSrc(book) as coverSrc; else adminCoverFallback">
+                <img [src]="coverSrc" [alt]="book.title" class="cover-img">
+              </ng-container>
               <ng-template #adminCoverFallback>
                 <div class="cover-placeholder">{{ getBookInitial(book) }}</div>
               </ng-template>
@@ -94,7 +96,7 @@
 
         <!-- Empty State -->
         <tr *ngIf="filteredBooks.length === 0 && !isLoading" class="empty-row">
-          <td colspan="7">
+          <td colspan="8">
             <div class="empty-state">
               <span class="material-icons empty-icon">menu_book</span>
               <h3>No books found</h3>
@@ -108,7 +110,7 @@
     <!-- Table Footer -->
     <div class="table-footer" *ngIf="filteredBooks.length > 0 && !isLoading">
       <div class="footer-info">
-        Showing <strong>{{ paginatedBooks.length }}</strong> of <strong>{{ filteredBooks.length }}</strong> books
+        Showing <strong>{{ paginatedBooks.length }}</strong> of <strong>{{ pagingMode === 'server' ? totalBooksCount : filteredBooks.length }}</strong> books
       </div>
       <div class="pagination" *ngIf="totalPages > 1">
         <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">

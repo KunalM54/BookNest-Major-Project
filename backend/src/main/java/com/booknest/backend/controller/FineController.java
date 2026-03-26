@@ -26,27 +26,28 @@ public class FineController {
 
     @GetMapping("/student/{studentId}")
     public ResponseEntity<Map<String, Object>> getFinesByStudent(@PathVariable Long studentId) {
-        List<Fine> fines = fineService.getPendingFinesByStudentId(studentId);
+        List<Fine> fines = fineService.recalculateFinesForStudent(studentId);
         double totalPending = fineService.getTotalPendingFine(studentId);
-        
+         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
+        // Student view: include both pending + paid fines for full transparency.
         response.put("data", fines);
         response.put("totalPending", totalPending);
-        
+         
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/student/{studentId}/all")
     public ResponseEntity<Map<String, Object>> getAllFinesByStudent(@PathVariable Long studentId) {
-        List<Fine> fines = fineService.getAllFinesByStudentId(studentId);
+        List<Fine> fines = fineService.recalculateFinesForStudent(studentId);
         double totalPending = fineService.getTotalPendingFine(studentId);
-        
+         
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("data", fines);
         response.put("totalPending", totalPending);
-        
+         
         return ResponseEntity.ok(response);
     }
 
@@ -56,8 +57,15 @@ public class FineController {
             @RequestBody Map<String, String> paymentRequest) {
         
         String paymentMethod = paymentRequest.getOrDefault("paymentMethod", "CASH");
+        Double amount = null;
+        try {
+            if (paymentRequest.containsKey("amount")) {
+                amount = Double.parseDouble(paymentRequest.get("amount"));
+            }
+        } catch (Exception ignored) {
+        }
         
-        Fine paidFine = fineService.payFine(fineId, paymentMethod);
+        Fine paidFine = fineService.payFine(fineId, paymentMethod, amount);
         
         Map<String, Object> response = new HashMap<>();
         if (paidFine != null) {
@@ -72,6 +80,14 @@ public class FineController {
         return ResponseEntity.ok(response);
     }
 
+    // Alias for REST semantics requested by prompt
+    @PutMapping("/{fineId}/pay")
+    public ResponseEntity<Map<String, Object>> payFinePut(
+            @PathVariable Long fineId,
+            @RequestBody Map<String, String> paymentRequest) {
+        return payFine(fineId, paymentRequest);
+    }
+
     @GetMapping("/calculate")
     public ResponseEntity<Map<String, Object>> calculateFine(@RequestParam int daysOverdue) {
         double fineAmount = fineService.calculateFineForDays(daysOverdue);
@@ -79,7 +95,7 @@ public class FineController {
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("daysOverdue", daysOverdue);
-        response.put("finePerDay", 30.0);
+        response.put("finePerDay", fineService.getFinePerDay());
         response.put("totalFine", fineAmount);
         
         return ResponseEntity.ok(response);
@@ -124,7 +140,7 @@ public class FineController {
 
     @GetMapping("/admin/all")
     public ResponseEntity<Map<String, Object>> getAllFinesAdmin() {
-        List<Fine> fines = fineService.getAllFines();
+        List<Fine> fines = fineService.getAllFinesWithDetails();
         double totalPending = fineService.getTotalPendingFines();
         long pendingCount = fineService.getPendingFinesCount();
         

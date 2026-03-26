@@ -22,7 +22,7 @@
     </div>
     <div class="summary-item">
       <span class="summary-label">Pending Fines</span>
-      <span class="summary-value">{{ fines.length }}</span>
+      <span class="summary-value">{{ pendingCount }}</span>
     </div>
   </div>
 
@@ -64,6 +64,14 @@
             <span class="label">Total Fine</span>
             <span class="value amount">₹{{ fine.fineAmount }}</span>
           </div>
+          <div class="detail-item">
+            <span class="label">Paid</span>
+            <span class="value">₹{{ fine.paidAmount || 0 }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Outstanding</span>
+            <span class="value amount">₹{{ getOutstanding(fine) }}</span>
+          </div>
         </div>
         <div class="fine-date">
           <span class="label">Created</span>
@@ -80,7 +88,7 @@
           [disabled]="processingPayment === fine.id"
           (click)="payFine(fine.id)">
           <span class="material-icons">{{ processingPayment === fine.id ? 'hourglass_top' : 'payment' }}</span>
-          {{ processingPayment === fine.id ? 'Processing...' : 'Pay Now' }}
+          {{ processingPayment === fine.id ? 'Processing...' : ('Pay ₹' + getOutstanding(fine)) }}
         </button>
         <span *ngIf="fine.status === 'PAID'" class="paid-date">
           Paid on {{ fine.paidAt | date: 'MMM dd, yyyy' }}

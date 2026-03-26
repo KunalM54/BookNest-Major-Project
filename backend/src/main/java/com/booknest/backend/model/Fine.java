@@ -1,11 +1,12 @@
 package com.booknest.backend.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "fines")
+@Table(name = "fines", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_fines_borrow_id", columnNames = { "borrow_id" })
+})
 public class Fine {
 
     @Id
@@ -28,6 +29,9 @@ public class Fine {
 
     @Column(name = "fine_per_day", nullable = false)
     private Double finePerDay;
+
+    @Column(name = "paid_amount", nullable = false)
+    private Double paidAmount = 0.0;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -56,6 +60,7 @@ public class Fine {
         this.daysOverdue = daysOverdue;
         this.finePerDay = finePerDay;
         this.fineAmount = daysOverdue * finePerDay;
+        this.paidAmount = 0.0;
         this.status = FineStatus.PENDING;
         this.createdAt = LocalDateTime.now();
     }
@@ -106,6 +111,14 @@ public class Fine {
 
     public void setFinePerDay(Double finePerDay) {
         this.finePerDay = finePerDay;
+    }
+
+    public Double getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(Double paidAmount) {
+        this.paidAmount = paidAmount;
     }
 
     public FineStatus getStatus() {

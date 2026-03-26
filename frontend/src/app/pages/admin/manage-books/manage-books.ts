@@ -44,6 +44,10 @@ export class ManageBooksComponent implements OnInit {
   paginatedBooks: Book[] = [];
   currentPage = 1;
   totalPages = 1;
+  totalBooksCount = 0;
+
+  pagingMode: 'server' | 'client' = 'server';
+  private hasLoadedAllBooks = false;
 
   categories = [
     'All',
@@ -80,7 +84,86 @@ export class ManageBooksComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadBooks();
+    this.refreshBooks(true);
+  }
+
+  private isClientMode(): boolean {
+    return this.searchTerm.trim().length > 0 || this.selectedCategory !== 'All';
+  }
+
+  private getServerSortParam(): string {
+    switch (this.sortBy) {
+      case 'oldest':
+        return 'id,asc';
+      case 'titleAZ':
+        return 'title,asc';
+      case 'titleZA':
+        return 'title,desc';
+      case 'authorAZ':
+        return 'author,asc';
+      case 'newest':
+      default:
+        return 'id,desc';
+    }
+  }
+
+  private refreshBooks(resetPage = true) {
+    if (resetPage) {
+      this.currentPage = 1;
+    }
+
+    if (this.isClientMode()) {
+      this.pagingMode = 'client';
+
+      if (this.hasLoadedAllBooks) {
+        this.filterBooks(false);
+        return;
+      }
+
+      this.loadBooksAll();
+      return;
+    }
+
+    this.pagingMode = 'server';
+    this.loadBooksPaged();
+  }
+
+  private loadBooksAll() {
+    this.isLoading = true;
+    this.bookService.getAllBooks().subscribe({
+      next: (data: Book[]) => {
+        this.books = data;
+        this.hasLoadedAllBooks = true;
+        this.totalBooksCount = data.length;
+        this.filterBooks(false);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load books';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadBooksPaged() {
+    this.isLoading = true;
+    const pageIndex = Math.max(0, this.currentPage - 1);
+
+    this.bookService.getBooksPaged(pageIndex, this.pageSize, this.getServerSortParam()).subscribe({
+      next: (page) => {
+        const content = page?.content || [];
+        this.paginatedBooks = content;
+        this.filteredBooks = content;
+        this.books = [];
+        this.totalBooksCount = Number(page?.totalElements || content.length);
+        this.totalPages = Math.max(1, Number(page?.totalPages || 1));
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load books';
+        this.isLoading = false;
+      }
+    });
   }
 
   private createEmptyForm(): BookForm {
@@ -112,19 +195,9 @@ export class ManageBooksComponent implements OnInit {
     });
   }
 
+  // Backwards compatible entry-point for existing calls
   loadBooks() {
-    this.isLoading = true;
-    this.bookService.getAllBooks().subscribe({
-      next: (data: Book[]) => {
-        this.books = data;
-        this.filterBooks(false);
-        this.isLoading = false;
-      },
-      error: (error) => {
-        this.errorMessage = 'Failed to load books';
-        this.isLoading = false;
-      }
-    });
+    this.refreshBooks(true);
   }
 
   filterBooks(resetPage = true) {
@@ -169,16 +242,16 @@ export class ManageBooksComponent implements OnInit {
   }
 
   onSortChange() {
-    this.filterBooks();
+    this.refreshBooks(true);
   }
 
   setCategory(cat: string) {
     this.selectedCategory = cat;
-    this.filterBooks();
+    this.refreshBooks(true);
   }
 
   onSearchChange() {
-    this.filterBooks();
+    this.refreshBooks(true);
   }
 
   updatePagination() {
@@ -199,7 +272,13 @@ export class ManageBooksComponent implements OnInit {
     }
 
     this.currentPage = page;
-    this.updatePagination();
+
+    if (this.pagingMode === 'server') {
+      this.loadBooksPaged();
+    } else {
+      this.updatePagination();
+    }
+
     scrollToTop();
   }
 
@@ -229,15 +308,14 @@ export class ManageBooksComponent implements OnInit {
   }
 
   get paginationStart(): number {
-    if (this.filteredBooks.length === 0) {
-      return 0;
-    }
-
+    const total = this.pagingMode === 'server' ? this.totalBooksCount : this.filteredBooks.length;
+    if (total === 0) return 0;
     return (this.currentPage - 1) * this.pageSize + 1;
   }
 
   get paginationEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.filteredBooks.length);
+    const total = this.pagingMode === 'server' ? this.totalBooksCount : this.filteredBooks.length;
+    return Math.min(this.currentPage * this.pageSize, total);
   }
 
   openAddModal() {
@@ -339,7 +417,7 @@ export class ManageBooksComponent implements OnInit {
   }
 
   onImageUrlBlur() {
-    const url = this.form.get('imageUrl')?.value;
+    const url = this.normalizeImageUrl(this.form.get('imageUrl')?.value);
     if (url && this.isValidImageUrl(url)) {
       this.bookForm.imageData = url;
       this.imagePreview = url;
@@ -348,12 +426,21 @@ export class ManageBooksComponent implements OnInit {
   }
 
   onImageUrlInput() {
-    const url = this.form.get('imageUrl')?.value;
+    const url = this.normalizeImageUrl(this.form.get('imageUrl')?.value);
     if (url && this.isValidImageUrl(url)) {
       this.bookForm.imageData = url;
       this.imagePreview = url;
       this.selectedImageName = 'URL Image';
     }
+  }
+
+  private normalizeImageUrl(url: string): string {
+    const value = (url || '').trim();
+    if (!value) return '';
+    if (value.startsWith('www.')) {
+      return `https://${value}`;
+    }
+    return value;
   }
 
   onImageLoadError() {
@@ -367,7 +454,7 @@ export class ManageBooksComponent implements OnInit {
 
   private isValidImageUrl(url: string): boolean {
     try {
-      const urlObj = new URL(url);
+      const urlObj = new URL(this.normalizeImageUrl(url));
       return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
     } catch {
       return false;
@@ -395,6 +482,31 @@ export class ManageBooksComponent implements OnInit {
     return book.title.trim().charAt(0).toUpperCase() || 'B';
   }
 
+  getCoverSrc(book: Pick<Book, 'imageData'>): string {
+    const img = book.imageData;
+    if (!img) return '';
+
+    let imageData = img.toString().trim();
+    if (!imageData || imageData === 'null' || imageData === 'undefined') return '';
+
+    if (imageData.startsWith('www.')) {
+      imageData = `https://${imageData}`;
+    }
+
+    if (/^(https?:\/\/|\/|assets\/)/i.test(imageData) || imageData.startsWith('data:')) {
+      return imageData;
+    }
+
+    const compact = imageData.replace(/\s/g, '');
+    if (compact.length < 40 || !/^[A-Za-z0-9+/=_-]+$/.test(compact)) {
+      return '';
+    }
+
+    let base64 = compact.replace(/-/g, '+').replace(/_/g, '/');
+    base64 = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+    return `data:image/jpeg;base64,${base64}`;
+  }
+
   saveBook() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -408,8 +520,14 @@ export class ManageBooksComponent implements OnInit {
     let imageData: string | null = null;
 
     if (this.imageInputMode === 'url' && formValue.imageUrl) {
-      // URL mode: use the typed URL
-      imageData = formValue.imageUrl;
+      // URL mode: validate and normalize
+      const normalizedUrl = this.normalizeImageUrl(formValue.imageUrl);
+      if (!this.isValidImageUrl(normalizedUrl)) {
+        this.isLoading = false;
+        this.snackbarService.show('Invalid image URL. Please use a full http(s) link.');
+        return;
+      }
+      imageData = normalizedUrl;
     } else if (this.imagePreview) {
       // File mode OR existing image: use whatever is in the preview
       imageData = this.imagePreview;

@@ -9,6 +9,7 @@ interface Fine {
   daysOverdue: number;
   fineAmount: number;
   finePerDay: number;
+  paidAmount?: number;
   status: 'PENDING' | 'PAID';
   createdAt: string;
   paidAt?: string;
@@ -89,6 +90,12 @@ export class ManageFinesComponent implements OnInit {
 
   getStatusClass(status: string): string {
     return status === 'PENDING' ? 'pending' : 'paid';
+  }
+
+  getOutstanding(fine: Fine): number {
+    const total = Number(fine.fineAmount || 0);
+    const paid = Number(fine.paidAmount || 0);
+    return Math.max(0, Math.round((total - paid) * 100) / 100);
   }
 
   get pendingFines() {

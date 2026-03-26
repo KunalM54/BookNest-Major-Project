@@ -2,18 +2,15 @@ package com.booknest.backend.service;
 
 import com.booknest.backend.model.Book;
 import com.booknest.backend.model.Borrow;
-import com.booknest.backend.model.Fine;
 import com.booknest.backend.model.User;
 import com.booknest.backend.repository.BookRepository;
 import com.booknest.backend.repository.BorrowRepository;
-import com.booknest.backend.repository.FineRepository;
 import com.booknest.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +30,7 @@ public class BorrowService {
     private UserRepository userRepository;
 
     @Autowired
-    private FineRepository fineRepository;
+    private FineService fineService;
 
     // Get all borrow requests
     public List<Borrow> getAllRequests() {
@@ -229,21 +226,13 @@ public class BorrowService {
         borrow.setReturnDate(LocalDate.now());
         borrow.setActionDate(LocalDate.now());
 
-        // Calculate fine if returned late
-        if (borrow.getDueDate() != null && LocalDate.now().isAfter(borrow.getDueDate())) {
-            long daysOverdue = ChronoUnit.DAYS.between(borrow.getDueDate(), LocalDate.now());
-            if (daysOverdue > 0) {
-                double finePerDay = 30.0;
-                double fineAmount = daysOverdue * finePerDay;
-                
-                Fine fine = new Fine(borrow.getStudent(), borrow, (int) daysOverdue, finePerDay);
-                fine.setFineAmount(fineAmount);
-                fineRepository.save(fine);
-                
-                response.put("fineCreated", true);
-                response.put("fineAmount", fineAmount);
-                response.put("daysOverdue", daysOverdue);
-            }
+        // Calculate and persist fine (dynamic rules are handled in FineService)
+        var fine = fineService.recalculateAndPersistFineForBorrow(borrow);
+        if (fine != null) {
+            response.put("fineCreated", true);
+            response.put("fineAmount", fine.getFineAmount());
+            response.put("daysOverdue", fine.getDaysOverdue());
+            response.put("fine", fine);
         }
 
         borrowRepository.save(borrow);

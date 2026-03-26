@@ -23,6 +23,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
 
   book: Book | null = null;
   bookNotFound = false;
+  imageError = false;
 
   hasPendingRequest = false;
   hasActiveBorrow = false;
@@ -52,7 +53,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     private reviewService: ReviewService,
     private snackbar: SnackbarService,
     private wishlistService: WishlistService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
@@ -180,35 +181,88 @@ export class BookDetailComponent implements OnInit, OnDestroy {
   getImageSource(): string {
     const img = this.book?.imageData;
     if (!img || img === 'null' || img === 'undefined') return '';
-    
+
     let imageData = img.toString().trim();
-    if (!imageData || imageData.length < 10) return '';
-    
+    if (!imageData) return '';
+
+    console.log('Raw imageData:', imageData.substring(0, 100) + '...'); // Debug
+
+    // Handle URLs without scheme
+    if (imageData.startsWith('www.')) {
+      imageData = `https://${imageData}`;
+    }
+
+    const isLikelyBase64 = (value: string): boolean => {
+      const v = value.replace(/\s/g, '');
+      if (v.length < 40) return false;
+      return /^[A-Za-z0-9+/=_-]+$/.test(v);
+    };
+
+    // Remote URL or local path
+    if (/^(https?:\/\/|\/|assets\/)/i.test(imageData)) {
+      console.log('Using URL:', imageData);
+      return imageData;
+    }
+
     if (imageData.startsWith('data:image')) {
+      console.log('Using data:image URL');
       return imageData;
     }
-    
+
     if (imageData.startsWith('data:')) {
+      console.log('Using data: URL');
       return imageData;
     }
-    
+
+    // Not base64, don't render garbage
+    if (!isLikelyBase64(imageData)) {
+      console.warn('Not valid base64 or URL:', imageData.substring(0, 50));
+      return '';
+    }
+
+    // Normalize base64/base64url + padding
+    imageData = imageData.replace(/\s/g, '').replace(/-/g, '+').replace(/_/g, '/');
+    let padded = imageData.padEnd(imageData.length + (4 - imageData.length % 4) % 4, '=');
+
+    // Improved MIME detection
     try {
-      const firstBytes = imageData.substring(0, 20);
+      const firstBytes = padded.substring(0, 32);
       const decoded = atob(firstBytes);
-      if (decoded.charCodeAt(0) === 0x89 && decoded.charCodeAt(1) === 0x50) {
-        return `data:image/png;base64,${imageData}`;
+
+      // PNG
+      if (decoded.charCodeAt(0) === 0x89 && decoded.charCodeAt(1) === 0x50 && decoded.charCodeAt(2) === 0x4E && decoded.charCodeAt(3) === 0x47) {
+        console.log('Detected PNG');
+        return `data:image/png;base64,${padded}`;
       }
+      // JPEG
       if (decoded.charCodeAt(0) === 0xFF && decoded.charCodeAt(1) === 0xD8) {
-        return `data:image/jpeg;base64,${imageData}`;
+        console.log('Detected JPEG');
+        return `data:image/jpeg;base64,${padded}`;
       }
-    } catch (e) {}
-    
-    return `data:image/jpeg;base64,${imageData}`;
+      // GIF
+      if (decoded.charCodeAt(0) === 0x47 && decoded.charCodeAt(1) === 0x49 && decoded.charCodeAt(2) === 0x46) {
+        console.log('Detected GIF');
+        return `data:image/gif;base64,${padded}`;
+      }
+      // Default to JPEG
+      console.log('Defaulting to JPEG');
+      return `data:image/jpeg;base64,${padded}`;
+    } catch (e) {
+      console.error('Base64 decode error:', e);
+      return `data:image/jpeg;base64,${padded}`;
+    }
   }
 
   hasImage(): boolean {
     const img = this.book?.imageData;
-    return !!(img && img.toString().trim() && img.toString().trim().length > 10);
+    if (!img || this.imageError) return false;
+    let value = img.toString().trim();
+    if (!value) return false;
+    if (value.startsWith('www.')) value = `https://${value}`;
+    if (value.startsWith('data:')) return true;
+    if (/^(https?:\/\/|\/|assets\/)/i.test(value)) return true;
+    const v = value.replace(/\s/g, '');
+    return v.length >= 40 && /^[A-Za-z0-9+/=_-]+$/.test(v);
   }
 
   get bookPrice(): number {
@@ -221,6 +275,15 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     if (this.hasActiveBorrow) return 'You already borrowed this book';
     if (this.hasPendingRequest) return 'Request already pending';
     return null;
+  }
+
+  onImageError() {
+    console.error('Image load failed for:', this.book?.title, 'Data:', this.book?.imageData?.substring(0, 100));
+    this.imageError = true;
+  }
+
+  onImageLoad() {
+    this.imageError = false;
   }
 
   requestBorrow() {
@@ -265,7 +328,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
 
   buyBook() {
     if (!this.book?.id || !this.book.price) return;
-    
+
     const userId = this.authService.getUserId();
     if (!userId) {
       this.snackbar.show('Please login to purchase a book');
@@ -364,4 +427,3 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     });
   }
 }
-

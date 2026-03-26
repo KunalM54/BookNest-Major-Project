@@ -90,7 +90,9 @@
           <th>Student</th>
           <th>Book</th>
           <th>Days Overdue</th>
-          <th>Fine Amount</th>
+          <th>Total Fine</th>
+          <th>Paid</th>
+          <th>Outstanding</th>
           <th>Status</th>
           <th>Created</th>
           <th>Paid Date</th>
@@ -112,6 +114,8 @@
           </td>
           <td class="text-center">{{ fine.daysOverdue }} days</td>
           <td class="amount">₹{{ fine.fineAmount }}</td>
+          <td>₹{{ fine.paidAmount || 0 }}</td>
+          <td class="amount">₹{{ getOutstanding(fine) }}</td>
           <td>
             <span class="status-badge" [class]="getStatusClass(fine.status)">
               {{ fine.status }}

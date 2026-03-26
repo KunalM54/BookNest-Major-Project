@@ -3,6 +3,8 @@ package com.booknest.backend.controller;
 import com.booknest.backend.model.Notice;
 import com.booknest.backend.service.NoticeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +25,12 @@ public class NoticeController {
     @GetMapping
     public ResponseEntity<List<Notice>> getAllNotices() {
         return ResponseEntity.ok(noticeService.getAllNotices());
+    }
+
+    // Server-side pagination (non-breaking: new endpoint)
+    @GetMapping("/paged")
+    public ResponseEntity<Page<Notice>> getNoticesPaged(Pageable pageable) {
+        return ResponseEntity.ok(noticeService.getNoticesPaged(pageable));
     }
 
     // Get notice by ID
@@ -102,4 +110,3 @@ public class NoticeController {
         return value == null || value.trim().isEmpty();
     }
 }
-

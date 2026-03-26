@@ -99,7 +99,7 @@
     <!-- Table Footer -->
     <div class="table-footer" *ngIf="filteredNotices.length > 0 && !isLoading">
       <div class="footer-info">
-        Showing <strong>{{ paginatedNotices.length }}</strong> of <strong>{{ filteredNotices.length }}</strong> notices
+        Showing <strong>{{ paginatedNotices.length }}</strong> of <strong>{{ pagingMode === 'server' ? totalNoticesCount : filteredNotices.length }}</strong> notices
       </div>
       <div class="pagination" *ngIf="totalPages > 1">
         <button (click)="goToPreviousPage()" [disabled]="currentPage === 1" class="page-btn">

@@ -65,6 +65,37 @@
   gap: 8px;
 }
 
+.quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  color: #64748b;
+  text-decoration: none;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: all 0.2s;
+}
+
+.quick-action:hover {
+  background: #f1f5f9;
+  color: #3b82f6;
+}
+
+.quick-action.active {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.18);
+}
+
 .user-badge {
   display: flex;
   align-items: center;

@@ -33,6 +33,10 @@ export class NoticesComponent implements OnInit {
   paginatedNotices: Notice[] = [];
   currentPage = 1;
   totalPages = 1;
+  totalNoticesCount = 0;
+
+  pagingMode: 'server' | 'client' = 'server';
+  private hasLoadedAllNotices = false;
 
   showModal = false;
   isEditing = false;
@@ -43,13 +47,80 @@ export class NoticesComponent implements OnInit {
   constructor(private noticeService: NoticeService) {}
 
   ngOnInit() {
-    this.loadNotices();
+    this.refreshNotices(true);
+  }
+
+  private isClientMode(): boolean {
+    return this.activeTab !== 'all' || this.searchTerm.trim().length > 0;
+  }
+
+  private refreshNotices(resetPage = true) {
+    if (resetPage) {
+      this.currentPage = 1;
+    }
+
+    if (this.isClientMode()) {
+      this.pagingMode = 'client';
+
+      if (this.hasLoadedAllNotices) {
+        this.filterNotices(false);
+        return;
+      }
+
+      this.loadNoticesAll();
+      return;
+    }
+
+    this.pagingMode = 'server';
+    this.loadNoticesPaged();
+  }
+
+  private loadNoticesAll() {
+    this.isLoading = true;
+    this.noticeService.getAllNotices().subscribe({
+      next: (data) => {
+        this.notices = this.sortNotices(this.normalizeNotices(data));
+        this.hasLoadedAllNotices = true;
+        this.totalNoticesCount = this.notices.length;
+        this.filterNotices(false);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading notices:', err);
+        this.errorMessage = 'Failed to load notices';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private loadNoticesPaged() {
+    this.isLoading = true;
+    const pageIndex = Math.max(0, this.currentPage - 1);
+
+    this.noticeService.getNoticesPaged(pageIndex, this.pageSize, 'createdAt,desc').subscribe({
+      next: (page) => {
+        const content = page?.content || [];
+        const normalized = this.sortNotices(this.normalizeNotices(content));
+
+        this.notices = normalized;
+        this.filteredNotices = normalized;
+        this.paginatedNotices = normalized;
+
+        this.totalNoticesCount = Number(page?.totalElements || normalized.length);
+        this.totalPages = Math.max(1, Number(page?.totalPages || 1));
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading notices:', err);
+        this.errorMessage = 'Failed to load notices';
+        this.isLoading = false;
+      }
+    });
   }
 
   setTab(tab: 'all' | 'normal' | 'important') {
     this.activeTab = tab;
-    this.currentPage = 1;
-    this.filterNotices(false);
+    this.refreshNotices(true);
   }
 
   getTabCount(tab: string): number {
@@ -144,19 +215,7 @@ export class NoticesComponent implements OnInit {
   }
 
   loadNotices() {
-    this.isLoading = true;
-    this.noticeService.getAllNotices().subscribe({
-      next: (data) => {
-        this.notices = this.sortNotices(this.normalizeNotices(data));
-        this.filterNotices(false);
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Error loading notices:', err);
-        this.errorMessage = 'Failed to load notices';
-        this.isLoading = false;
-      }
-    });
+    this.refreshNotices(true);
   }
 
   filterNotices(resetPage = true) {
@@ -183,7 +242,7 @@ export class NoticesComponent implements OnInit {
   }
 
   onSearchChange() {
-    this.filterNotices();
+    this.refreshNotices(true);
   }
 
   updatePagination() {
@@ -203,7 +262,13 @@ export class NoticesComponent implements OnInit {
     }
 
     this.currentPage = page;
-    this.updatePagination();
+
+    if (this.pagingMode === 'server') {
+      this.loadNoticesPaged();
+    } else {
+      this.updatePagination();
+    }
+
     scrollToTop();
   }
 
@@ -265,7 +330,8 @@ export class NoticesComponent implements OnInit {
         next: (response) => {
           if (response.notice) {
             this.closeModal();
-            this.loadNotices();
+            this.hasLoadedAllNotices = false;
+            this.refreshNotices(true);
             return;
           }
 
@@ -285,7 +351,8 @@ export class NoticesComponent implements OnInit {
       next: (response) => {
         if (response.notice) {
           this.closeModal();
-          this.loadNotices();
+          this.hasLoadedAllNotices = false;
+          this.refreshNotices(true);
           return;
         }
 
@@ -321,8 +388,8 @@ export class NoticesComponent implements OnInit {
         if (response?.success === false) {
           this.errorMessage = response.message ?? 'Failed to delete notice';
         } else {
-          this.notices = this.notices.filter((notice) => notice.id !== noticeId);
-          this.filterNotices(false);
+          this.hasLoadedAllNotices = false;
+          this.refreshNotices(true);
         }
 
         this.confirmDeleteId = null;
@@ -402,14 +469,13 @@ export class NoticesComponent implements OnInit {
   }
 
   get paginationStart(): number {
-    if (this.filteredNotices.length === 0) {
-      return 0;
-    }
-
+    const total = this.pagingMode === 'server' ? this.totalNoticesCount : this.filteredNotices.length;
+    if (total === 0) return 0;
     return (this.currentPage - 1) * this.pageSize + 1;
   }
 
   get paginationEnd(): number {
-    return Math.min(this.currentPage * this.pageSize, this.filteredNotices.length);
+    const total = this.pagingMode === 'server' ? this.totalNoticesCount : this.filteredNotices.length;
+    return Math.min(this.currentPage * this.pageSize, total);
   }
 }

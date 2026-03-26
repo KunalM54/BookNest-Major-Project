@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Notice, NoticeMutationResponse, NoticePayload } from '../models/notice.model';
+import { Notice, NoticePayload, NoticeMutationResponse } from '../models/notice.model';
+import type { SpringPage } from './spring-page';
+
+export type { Notice, NoticePayload, NoticePriority } from '../models/notice.model';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +17,14 @@ export class NoticeService {
   // Get all notices
   getAllNotices(): Observable<Notice[]> {
     return this.http.get<Notice[]>(this.apiUrl);
+  }
+
+  // Get notices (paged)
+  getNoticesPaged(page: number, size: number, sort?: string): Observable<SpringPage<Notice>> {
+    const sortQuery = sort ? `&sort=${encodeURIComponent(sort)}` : '';
+    return this.http.get<SpringPage<Notice>>(
+      `${this.apiUrl}/paged?page=${page}&size=${size}${sortQuery}`
+    );
   }
 
   // Get notice by ID
@@ -41,4 +52,3 @@ export class NoticeService {
     return this.http.get<Notice[]>(`${this.apiUrl}/important`);
   }
 }
-

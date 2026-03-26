@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { SpringPage } from './spring-page';
 
 export interface Student {
   id: number;
@@ -23,6 +24,14 @@ export class UserService {
   // Get all students
   getAllStudents(): Observable<Student[]> {
     return this.http.get<Student[]>(this.apiUrl);
+  }
+
+  // Get students (paged)
+  getStudentsPaged(page: number, size: number, sort?: string): Observable<SpringPage<Student>> {
+    const sortQuery = sort ? `&sort=${encodeURIComponent(sort)}` : '';
+    return this.http.get<SpringPage<Student>>(
+      `${this.apiUrl}/paged?page=${page}&size=${size}${sortQuery}`
+    );
   }
 
   // Get student by ID
