@@ -291,4 +291,33 @@ public class BorrowService {
     public List<Borrow> getRequestsHistory(Long studentId) {
         return borrowRepository.findRequestsHistoryByStudentId(studentId);
     }
+
+    public Map<String, Object> getBookBorrowStatus(Long studentId, Long bookId) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (!userRepository.existsById(studentId)) {
+            response.put("success", false);
+            response.put("message", "Student not found");
+            return response;
+        }
+        if (!bookRepository.existsById(bookId)) {
+            response.put("success", false);
+            response.put("message", "Book not found");
+            return response;
+        }
+
+        boolean hasPending = borrowRepository.existsByStudentIdAndBookIdAndStatusIn(
+                studentId, bookId, List.of(Borrow.BorrowStatus.PENDING));
+        boolean hasActive = borrowRepository.existsByStudentIdAndBookIdAndStatusIn(
+                studentId, bookId, List.of(Borrow.BorrowStatus.APPROVED, Borrow.BorrowStatus.OVERDUE));
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("hasPending", hasPending);
+        data.put("hasActive", hasActive);
+
+        response.put("success", true);
+        response.put("message", "Borrow status fetched");
+        response.put("data", data);
+        return response;
+    }
 }

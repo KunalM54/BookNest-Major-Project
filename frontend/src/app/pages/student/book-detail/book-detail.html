@@ -1,0 +1,164 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">book</span>
+        Book Details
+      </h1>
+      <p class="page-subtitle" *ngIf="book">View book info, availability, and reviews</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading book...</p>
+  </div>
+
+  <div *ngIf="!loading && bookNotFound" class="empty-state">
+    <span class="material-icons empty-icon">menu_book</span>
+    <h3>Book not found</h3>
+    <p>The book you are looking for doesn't exist.</p>
+    <a class="btn-primary" routerLink="/student/browse">
+      <span class="material-icons">search</span>
+      Browse Library
+    </a>
+  </div>
+
+  <div *ngIf="!loading && book" class="content">
+    <div class="book-card">
+      <div class="book-cover">
+        <img
+          *ngIf="book.imageData && book.imageData.trim()"
+          [src]="book.imageData"
+          [alt]="book.title"
+          class="cover-img"
+        />
+        <div *ngIf="!book.imageData || !book.imageData.trim()" class="cover-placeholder">
+          <span class="placeholder-letter">{{ book.title.charAt(0).toUpperCase() }}</span>
+        </div>
+        <span class="status-badge" [class.available]="isAvailable()" [class.unavailable]="!isAvailable()">
+          {{ statusText }}
+        </span>
+      </div>
+
+      <div class="book-info">
+        <h2 class="title">{{ book.title }}</h2>
+        <p class="author">by {{ book.author }}</p>
+
+        <div class="meta-grid">
+          <div class="meta-item">
+            <span class="meta-label">ISBN</span>
+            <span class="meta-value">{{ book.isbn }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Category</span>
+            <span class="meta-value">{{ book.category }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Copies</span>
+            <span class="meta-value">{{ book.availableCopies }} / {{ book.totalCopies }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Added</span>
+            <span class="meta-value">{{ book.addedDate | date: 'MMM dd, yyyy' }}</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" [disabled]="!!borrowDisabledReason" (click)="requestBorrow()">
+            <span class="material-icons">add_circle</span>
+            Borrow
+          </button>
+          <button class="btn-outline" [disabled]="isAvailable()" (click)="joinWaitlist()">
+            <span class="material-icons">schedule</span>
+            Join Waitlist
+          </button>
+          <div class="hint" *ngIf="borrowDisabledReason">{{ borrowDisabledReason }}</div>
+        </div>
+      </div>
+
+      <div class="rating-summary">
+        <div class="avg">
+          <div class="avg-number">{{ averageRating | number: '1.1-1' }}</div>
+          <div class="stars">
+            <span class="material-icons star" *ngFor="let s of starArray(averageRating)">{{
+              s ? 'star' : 'star_border'
+            }}</span>
+          </div>
+          <div class="count">{{ totalReviews }} review{{ totalReviews !== 1 ? 's' : '' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reviews-section">
+      <div class="section-header">
+        <h3 class="section-title">Reviews & Ratings</h3>
+      </div>
+
+      <div class="write-review" *ngIf="canWriteReview">
+        <h4 class="sub-title">{{ hasExistingReview ? 'Update Your Review' : 'Write a Review' }}</h4>
+
+        <div class="form-row">
+          <label class="label">Rating</label>
+          <select [(ngModel)]="reviewRating" class="select">
+            <option [ngValue]="5">5 - Excellent</option>
+            <option [ngValue]="4">4 - Very Good</option>
+            <option [ngValue]="3">3 - Good</option>
+            <option [ngValue]="2">2 - Fair</option>
+            <option [ngValue]="1">1 - Poor</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label class="label">Comment (optional)</label>
+          <textarea
+            [(ngModel)]="reviewComment"
+            class="textarea"
+            rows="3"
+            maxlength="2000"
+            placeholder="Share your thoughts about this book..."
+          ></textarea>
+          <div class="char-count">{{ (reviewComment || '').length }}/2000</div>
+        </div>
+
+        <div class="error" *ngIf="reviewError">{{ reviewError }}</div>
+
+        <button class="btn-primary" (click)="submitReview()" [disabled]="submittingReview">
+          <span class="material-icons">{{ submittingReview ? 'hourglass_top' : 'rate_review' }}</span>
+          {{ submittingReview ? 'Saving...' : hasExistingReview ? 'Update Review' : 'Submit Review' }}
+        </button>
+      </div>
+
+      <div class="info-banner" *ngIf="!canWriteReview">
+        <span class="material-icons">info</span>
+        <span>You can write a review only after you return this book.</span>
+      </div>
+
+      <div class="review-list" *ngIf="reviews.length > 0">
+        <div class="review-card" *ngFor="let r of reviews">
+          <div class="review-top">
+            <div class="reviewer">
+              <div class="avatar">{{ (r.studentName || 'S').charAt(0).toUpperCase() }}</div>
+              <div>
+                <div class="name">{{ r.studentName }}</div>
+                <div class="date">{{ r.createdAt | date: 'MMM dd, yyyy' }}</div>
+              </div>
+            </div>
+            <div class="review-stars">
+              <span class="material-icons star" *ngFor="let s of starArray(r.rating)">{{
+                s ? 'star' : 'star_border'
+              }}</span>
+            </div>
+          </div>
+          <div class="comment" *ngIf="r.comment && r.comment.trim()">{{ r.comment }}</div>
+        </div>
+      </div>
+
+      <div class="empty-reviews" *ngIf="reviews.length === 0">
+        <span class="material-icons">chat_bubble_outline</span>
+        <p>No reviews yet. Be the first to review!</p>
+      </div>
+    </div>
+  </div>
+</div>
+

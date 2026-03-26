@@ -29,6 +29,17 @@ export interface DashboardStats {
   overdueBooks: number;
 }
 
+export interface BookBorrowStatusPayload {
+  hasPending: boolean;
+  hasActive: boolean;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -111,6 +122,12 @@ export class BorrowService {
   getMyRequestsHistory(userId: number): Observable<BorrowRequest[]> {
     return this.http.get<BorrowRequest[]>(`${this.apiUrl}/my-requests/history`, {
       params: { userId: userId.toString() }
+    });
+  }
+
+  getBookBorrowStatus(studentId: number, bookId: number): Observable<ApiResponse<BookBorrowStatusPayload>> {
+    return this.http.get<ApiResponse<BookBorrowStatusPayload>>(`${this.apiUrl}/book-status`, {
+      params: { studentId: studentId.toString(), bookId: bookId.toString() }
     });
   }
 }

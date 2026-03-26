@@ -11,6 +11,7 @@ export interface Book {
   imageData?: string | null;
   totalCopies: number;
   availableCopies: number;
+  addedDate?: string;
 }
 
 @Injectable({

@@ -162,6 +162,18 @@ public class BorrowController {
         return ResponseEntity.ok(dtos);
     }
 
+    // Book-specific borrow status for student UI
+    @GetMapping("/book-status")
+    public ResponseEntity<Map<String, Object>> getBookBorrowStatus(
+            @RequestParam Long studentId,
+            @RequestParam Long bookId) {
+        Map<String, Object> result = borrowService.getBookBorrowStatus(studentId, bookId);
+        if ((Boolean) result.get("success")) {
+            return ResponseEntity.ok(result);
+        }
+        return ResponseEntity.badRequest().body(result);
+    }
+
     // Helper method to convert Borrow entity to DTO
     // FIX: Uses getDisplayStatus() so frontend receives correct status (OVERDUE,
     // RETURNED_LATE, etc.)

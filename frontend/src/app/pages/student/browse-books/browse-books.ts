@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { SnackbarService } from '../../../services/snackbar';
 import { AuthService } from '../../../services/auth';
@@ -37,7 +38,8 @@ export class BrowseBooksComponent implements OnInit, OnDestroy {
     private snackbar: SnackbarService,
     private http: HttpClient,
     private authService: AuthService,
-    private bookService: BookService
+    private bookService: BookService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -289,5 +291,10 @@ export class BrowseBooksComponent implements OnInit, OnDestroy {
           this.snackbar.show(error.error?.message || 'Failed to request book');
         }
       });
+  }
+
+  openBookDetail(book: Book) {
+    if (!book.id) return;
+    this.router.navigate(['/books', book.id]);
   }
 }

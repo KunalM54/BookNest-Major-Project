@@ -40,7 +40,7 @@
 
   <!-- Books Grid -->
   <div class="books-grid" *ngIf="!loading && filteredBooks.length > 0">
-    <div class="book-card" *ngFor="let book of filteredBooksForDisplay">
+    <div class="book-card" *ngFor="let book of filteredBooksForDisplay" (click)="openBookDetail(book)" role="button" tabindex="0">
       <!-- Cover -->
       <div class="card-cover">
         <img *ngIf="book.imageData && book.imageData.trim()" [src]="book.imageData" [alt]="book.title" class="cover-img">
@@ -71,7 +71,7 @@
             class="request-btn" 
             [class.unavailable]="!isAvailable(book)"
             [disabled]="!isAvailable(book)"
-            (click)="requestBook(book)">
+            (click)="$event.stopPropagation(); requestBook(book)">
             <span class="material-icons">{{ isAvailable(book) ? 'add_circle' : 'block' }}</span>
             {{ isAvailable(book) ? 'Request Book' : 'Unavailable' }}
           </button>

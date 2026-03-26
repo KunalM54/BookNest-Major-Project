@@ -25,6 +25,7 @@ import { ChangePasswordStudent } from './pages/student/change-password/change-pa
 import { MyLibraryComponent } from './pages/student/my-library/my-library';
 import { MyActivityComponent } from './pages/student/my-activity/my-activity';
 import { MyStatsComponent } from './pages/student/my-stats/my-stats';
+import { BookDetailComponent } from './pages/student/book-detail/book-detail';
 
 
 // ================= ADMIN PAGES =================
@@ -44,6 +45,15 @@ export const routes: Routes = [
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
 
+  // Student book detail (dedicated route)
+  {
+    path: 'books/:id',
+    component: StudentLayoutComponent,
+    canActivate: [authGuard, studentGuard],
+    canActivateChild: [authChildGuard, studentChildGuard],
+    children: [{ path: '', component: BookDetailComponent }],
+  },
+
   // STUDENT ROUTING
   {
     path: 'student',
@@ -54,6 +64,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: StudentDashboard },
       { path: 'browse', component: BrowseBooksComponent },
+      { path: 'books/:id', component: BookDetailComponent },
       { path: 'my-books', component: MyBooksComponent },
       { path: 'my-library', component: MyLibraryComponent },
       { path: 'history', component: HistoryComponent },
