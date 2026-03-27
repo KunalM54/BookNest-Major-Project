@@ -87,6 +87,29 @@ public class EmailService {
         }
     }
 
+    public boolean sendDueTomorrowReminderEmail(Borrow borrow) {
+        try {
+            String studentEmail = borrow.getStudent().getEmail();
+            String studentName = borrow.getStudent().getFullName();
+            String bookTitle = borrow.getBook().getTitle();
+            LocalDate dueDate = borrow.getDueDate();
+
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@booknest.com");
+            message.setTo(studentEmail);
+            message.setSubject("Book Return Reminder - " + bookTitle);
+            message.setText(buildDueTomorrowReminderBody(studentName, bookTitle, dueDate));
+
+            mailSender.send(message);
+            logger.info("Due tomorrow reminder email sent to: {}", studentEmail);
+            return true;
+        } catch (MailException e) {
+            logger.error("Failed to send due tomorrow reminder to {}: {}", 
+                borrow.getStudent().getEmail(), e.getMessage());
+            return false;
+        }
+    }
+
     public boolean sendAvailabilityAlertEmail(User student, Book book) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
@@ -138,6 +161,24 @@ public class EmailService {
                 Best regards,
                 BookNest Library
                 """.formatted(studentName, bookTitle, dueDate.format(formatter), daysUntilDue);
+    }
+
+    private String buildDueTomorrowReminderBody(String studentName, String bookTitle, LocalDate dueDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy");
+        return """
+                Dear %s,
+                
+                This is a reminder that your borrowed book "%s" is due tomorrow.
+                
+                Due Date: %s
+                
+                Please return it on time to avoid fines.
+                
+                If you have already returned the book, please ignore this message.
+                
+                Thank you,
+                BookNest Library
+                """.formatted(studentName, bookTitle, dueDate.format(formatter));
     }
 
     private String buildAvailabilityAlertBody(String studentName, String bookTitle) {

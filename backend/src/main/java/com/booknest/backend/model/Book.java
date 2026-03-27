@@ -48,6 +48,9 @@ public class Book {
     @Column(name = "book_condition")
     private String bookCondition = "NEW";
 
+    @Column(name = "book_url")
+    private String bookUrl;
+
     @PrePersist
     protected void onCreate() {
         this.addedDate = LocalDate.now();
@@ -171,5 +174,13 @@ public class Book {
 
     public void setBookCondition(String bookCondition) {
         this.bookCondition = bookCondition;
+    }
+
+    public String getBookUrl() {
+        return bookUrl;
+    }
+
+    public void setBookUrl(String bookUrl) {
+        this.bookUrl = bookUrl;
     }
 }

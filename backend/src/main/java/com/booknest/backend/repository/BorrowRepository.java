@@ -86,4 +86,7 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
     @Query("SELECT b FROM Borrow b WHERE b.status = :status AND b.dueDate < :dueDate")
     List<Borrow> findByStatusAndDueDateBefore(Borrow.BorrowStatus status, LocalDate dueDate);
+
+    @Query("SELECT b FROM Borrow b WHERE b.status = 'APPROVED' AND b.dueDate = :tomorrow AND b.emailSent = false AND b.returnDate IS NULL")
+    List<Borrow> findBorrowsDueTomorrowWithoutEmailSent(LocalDate tomorrow);
 }

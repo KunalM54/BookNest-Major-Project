@@ -1,22 +1,19 @@
 package com.booknest.backend.service;
 
+import com.booknest.backend.dto.FineDTO;
 import com.booknest.backend.model.Borrow;
 import com.booknest.backend.model.Fine;
 import com.booknest.backend.repository.BorrowRepository;
 import com.booknest.backend.repository.FineRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class FineService {
@@ -24,219 +21,224 @@ public class FineService {
     @Value("${booknest.fine.perDay:30}")
     private double finePerDay;
 
-    @Autowired
-    private FineRepository fineRepository;
+    private final FineRepository fineRepository;
+    private final BorrowRepository borrowRepository;
 
-    @Autowired
-    private BorrowRepository borrowRepository;
+    public FineService(FineRepository fineRepository, BorrowRepository borrowRepository) {
+        this.fineRepository = fineRepository;
+        this.borrowRepository = borrowRepository;
+    }
 
     public double getFinePerDay() {
         return finePerDay;
     }
 
-    private long computeLateDays(LocalDate dueDate, LocalDate returnDate, LocalDate today) {
+    private int calculateLateDays(LocalDate dueDate, LocalDate returnDate) {
         if (dueDate == null) {
             return 0;
         }
-
-        // Case 1 & 2: Returned
-        if (returnDate != null) {
-            if (returnDate.isAfter(dueDate)) {
-                return ChronoUnit.DAYS.between(dueDate, returnDate);
-            }
-            return 0;
+        LocalDate referenceDate = returnDate != null ? returnDate : LocalDate.now();
+        if (referenceDate.isAfter(dueDate)) {
+            return (int) ChronoUnit.DAYS.between(dueDate, referenceDate);
         }
-
-        // Case 3 & 4: Not returned
-        if (today != null && today.isAfter(dueDate)) {
-            return ChronoUnit.DAYS.between(dueDate, today);
-        }
-
         return 0;
     }
 
-    private double computeFineAmount(long lateDays) {
-        if (lateDays <= 0) {
-            return 0.0;
+    private FineDTO toDTO(Fine fine) {
+        FineDTO dto = new FineDTO();
+        dto.setId(fine.getId());
+        dto.setDueDate(fine.getDueDate());
+        dto.setReturnDate(fine.getReturnDate());
+        
+        int calculatedLateDays = calculateLateDays(fine.getDueDate(), fine.getReturnDate());
+        dto.setLateDays(calculatedLateDays);
+        
+        dto.setFinePerDay(fine.getFinePerDay() != null ? fine.getFinePerDay() : 0);
+        
+        double calculatedAmount = calculatedLateDays * finePerDay;
+        double totalFine = calculatedAmount > 0 ? calculatedAmount : (fine.getFineAmount() != null ? fine.getFineAmount() : 0);
+        dto.setFineAmount(totalFine);
+        
+        dto.setFineStatus(fine.getFineStatus() != null ? fine.getFineStatus().name() : "UNPAID");
+        dto.setPaymentId(fine.getPaymentId());
+        dto.setCreatedAt(fine.getCreatedAt());
+        dto.setBorrowId(fine.getBorrow() != null ? fine.getBorrow().getId() : null);
+        
+        if (fine.getFineStatus() == Fine.FineStatus.PAID) {
+            dto.setPaidAmount(totalFine);
+        } else {
+            dto.setPaidAmount(0.0);
         }
-        return lateDays * finePerDay;
-    }
 
-    private double safeDouble(Double value) {
-        return value == null ? 0.0 : value;
+        if (fine.getStudent() != null) {
+            dto.setStudentName(fine.getStudent().getFullName());
+            dto.setStudentId(fine.getStudent().getStudentId());
+        }
+
+        if (fine.getBorrow() != null) {
+            if (fine.getBorrow().getBook() != null) {
+                dto.setBookTitle(fine.getBorrow().getBook().getTitle());
+                dto.setBookAuthor(fine.getBorrow().getBook().getAuthor());
+            }
+        }
+
+        return dto;
     }
 
     @Transactional
-    public Fine recalculateAndPersistFineForBorrow(Borrow borrow) {
-        if (borrow == null) {
+    public FineDTO recalculateAndCreateFine(Borrow borrow) {
+        if (borrow == null || borrow.getDueDate() == null) {
             return null;
         }
 
-        LocalDate dueDate = borrow.getDueDate();
-        LocalDate returnDate = borrow.getReturnDate();
-        LocalDate today = LocalDate.now();
-
-        long lateDays = computeLateDays(dueDate, returnDate, today);
-        double totalFine = computeFineAmount(lateDays);
-
-        if (totalFine <= 0.0) {
+        int lateDays = calculateLateDays(borrow.getDueDate(), borrow.getReturnDate());
+        if (lateDays <= 0) {
             return null;
         }
+
+        double fineAmount = lateDays * finePerDay;
 
         Optional<Fine> existingOpt = fineRepository.findByBorrowId(borrow.getId());
-        Fine fine = existingOpt.orElseGet(() -> new Fine(borrow.getStudent(), borrow, (int) lateDays, finePerDay));
+        Fine fine = existingOpt.orElseGet(() -> {
+            Fine f = new Fine();
+            f.setBorrow(borrow);
+            f.setStudent(borrow.getStudent());
+            return f;
+        });
 
-        fine.setStudent(borrow.getStudent());
-        fine.setBorrow(borrow);
-        fine.setDaysOverdue((int) lateDays);
+        fine.setDueDate(borrow.getDueDate());
+        fine.setReturnDate(borrow.getReturnDate());
+        fine.setLateDays(lateDays);
         fine.setFinePerDay(finePerDay);
-        fine.setFineAmount(totalFine);
+        fine.setFineAmount(fineAmount);
+        
+        if (fine.getFineStatus() == null) {
+            fine.setFineStatus(Fine.FineStatus.UNPAID);
+        }
 
-        double paidAmount = safeDouble(fine.getPaidAmount());
-        fine.setPaidAmount(paidAmount);
+        fine = fineRepository.save(fine);
+        return toDTO(fine);
+    }
 
-        double outstanding = Math.max(0.0, totalFine - paidAmount);
-        fine.setStatus(outstanding <= 0.0 ? Fine.FineStatus.PAID : Fine.FineStatus.PENDING);
+    @Transactional(readOnly = true)
+    public List<FineDTO> getFinesForStudent(Long studentId) {
+        return fineRepository.findByStudentIdWithDetails(studentId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
 
-        return fineRepository.save(fine);
+    @Transactional(readOnly = true)
+    public List<FineDTO> getAllFines() {
+        return fineRepository.findAllWithDetails()
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public double getTotalPendingForStudent(Long studentId) {
+        return fineRepository.findByStudentIdAndFineStatus(studentId, Fine.FineStatus.UNPAID)
+                .stream()
+                .mapToDouble(f -> f.getFineAmount() != null ? f.getFineAmount() : 0)
+                .sum();
     }
 
     @Transactional
-    public List<Fine> recalculateFinesForStudent(Long studentId) {
-        List<Borrow> borrows = borrowRepository.findByStudentIdOrderByRequestDateDesc(studentId);
-        for (Borrow borrow : borrows) {
-            recalculateAndPersistFineForBorrow(borrow);
+    public FineDTO payFine(Long fineId, Long paymentId) {
+        Fine fine = fineRepository.findById(fineId)
+                .orElseThrow(() -> new RuntimeException("Fine not found"));
+
+        if (fine.getFineStatus() == Fine.FineStatus.PAID) {
+            throw new RuntimeException("Fine already paid");
         }
-        return fineRepository.findByStudentIdWithDetails(studentId);
+
+        fine.setFineStatus(Fine.FineStatus.PAID);
+        fine.setPaymentId(paymentId);
+        fine = fineRepository.save(fine);
+
+        return toDTO(fine);
     }
 
     @Transactional
-    public void recalculateAllPotentialFines() {
-        List<Borrow> borrows = borrowRepository.findBorrowsWithPotentialFines();
-        for (Borrow borrow : borrows) {
-            recalculateAndPersistFineForBorrow(borrow);
-        }
+    public List<FineDTO> recalculateAllFinesAndGetAll() {
+        recalculateAllFines();
+        return getAllFines();
     }
-
+    
     @Transactional
-    public Fine payFine(Long fineId, String paymentMethod) {
-        return payFine(fineId, paymentMethod, null);
-    }
-
-    @Transactional
-    public Fine payFine(Long fineId, String paymentMethod, Double requestedAmount) {
-        Optional<Fine> fineOpt = fineRepository.findById(fineId);
-        if (fineOpt.isEmpty()) {
-            return null;
+    public void recalculateAllFines() {
+        List<Borrow> overdueBorrows = borrowRepository.findBorrowsWithPotentialFines();
+        for (Borrow borrow : overdueBorrows) {
+            try {
+                recalculateAndPersistFineForBorrow(borrow);
+            } catch (Exception e) {
+                System.err.println("Error recalculating fine for borrow " + borrow.getId() + ": " + e.getMessage());
+            }
         }
-
-        Fine fine = fineOpt.get();
-
-        // Ensure we pay against the latest dynamic fine value.
-        Fine refreshed = recalculateAndPersistFineForBorrow(fine.getBorrow());
-        if (refreshed == null) {
-            return fine;
+        
+        List<Fine> allExistingFines = fineRepository.findAll();
+        for (Fine fine : allExistingFines) {
+            try {
+                if (fine.getFineStatus() == Fine.FineStatus.PAID) {
+                    continue;
+                }
+                
+                int calculatedLateDays = calculateLateDays(fine.getDueDate(), fine.getReturnDate());
+                if (calculatedLateDays <= 0) {
+                    continue;
+                }
+                
+                double calculatedAmount = calculatedLateDays * finePerDay;
+                fine.setLateDays(calculatedLateDays);
+                fine.setFineAmount(calculatedAmount);
+                fineRepository.save(fine);
+            } catch (Exception e) {
+                System.err.println("Error recalculating existing fine " + fine.getId() + ": " + e.getMessage());
+            }
         }
-
-        double totalFine = safeDouble(refreshed.getFineAmount());
-        double alreadyPaid = safeDouble(refreshed.getPaidAmount());
-        double outstanding = Math.max(0.0, totalFine - alreadyPaid);
-
-        if (outstanding <= 0.0) {
-            refreshed.setStatus(Fine.FineStatus.PAID);
-            return fineRepository.save(refreshed);
-        }
-
-        double amountToPay;
-        if (requestedAmount == null || requestedAmount <= 0.0) {
-            amountToPay = outstanding;
-        } else {
-            amountToPay = Math.min(requestedAmount, outstanding);
-        }
-
-        refreshed.setPaidAmount(alreadyPaid + amountToPay);
-        refreshed.setPaymentMethod(paymentMethod);
-        refreshed.setPaidAt(LocalDateTime.now());
-
-        double newOutstanding = Math.max(0.0, totalFine - safeDouble(refreshed.getPaidAmount()));
-        refreshed.setStatus(newOutstanding <= 0.0 ? Fine.FineStatus.PAID : Fine.FineStatus.PENDING);
-
-        return fineRepository.save(refreshed);
     }
 
     public double calculateFineForDays(int daysOverdue) {
         return daysOverdue * finePerDay;
     }
 
-    public Map<String, Object> calculateFineForBorrow(Borrow borrow) {
-        Map<String, Object> result = new HashMap<>();
+    @Transactional(readOnly = true)
+    public Optional<FineDTO> getFineById(Long fineId) {
+        return fineRepository.findById(fineId).map(this::toDTO);
+    }
 
-        LocalDate dueDate = borrow.getDueDate();
-        LocalDate returnDate = borrow.getReturnDate();
-        LocalDate today = LocalDate.now();
-
-        long lateDays = computeLateDays(dueDate, returnDate, today);
-        double fineAmount = computeFineAmount(lateDays);
-
-        result.put("borrowId", borrow.getId());
-        result.put("dueDate", dueDate != null ? dueDate.toString() : null);
-        result.put("returnDate", returnDate != null ? returnDate.toString() : null);
-        result.put("lateDays", lateDays);
-        result.put("fineAmount", fineAmount);
-        result.put("finePerDay", finePerDay);
-
-        if (dueDate == null) {
-            result.put("status", "NO_DUE_DATE");
-        } else if (returnDate != null && lateDays == 0) {
-            result.put("status", "RETURNED_ON_TIME");
-        } else if (returnDate != null && lateDays > 0) {
-            result.put("status", "RETURNED_LATE");
-        } else if (returnDate == null && lateDays > 0) {
-            result.put("status", "OVERDUE");
-        } else {
-            result.put("status", "ACTIVE");
+    @Transactional
+    public Fine recalculateAndPersistFineForBorrow(Borrow borrow) {
+        if (borrow == null || borrow.getDueDate() == null) {
+            return null;
         }
 
-        return result;
-    }
-
-    public List<Map<String, Object>> calculateFinesForBorrows(List<Borrow> borrows) {
-        List<Map<String, Object>> results = new ArrayList<>();
-        for (Borrow borrow : borrows) {
-            results.add(calculateFineForBorrow(borrow));
+        int lateDays = calculateLateDays(borrow.getDueDate(), borrow.getReturnDate());
+        if (lateDays <= 0) {
+            return null;
         }
-        return results;
-    }
 
-    @Transactional
-    public List<Fine> getAllFinesWithDetails() {
-        recalculateAllPotentialFines();
-        return fineRepository.findAllWithDetails();
-    }
+        double fineAmount = lateDays * finePerDay;
 
-    @Transactional
-    public double getTotalPendingFine(Long studentId) {
-        List<Fine> fines = recalculateFinesForStudent(studentId);
-        return fines.stream()
-                .filter(f -> f.getStatus() == Fine.FineStatus.PENDING)
-                .mapToDouble(f -> Math.max(0.0, safeDouble(f.getFineAmount()) - safeDouble(f.getPaidAmount())))
-                .sum();
-    }
+        Optional<Fine> existingOpt = fineRepository.findByBorrowId(borrow.getId());
+        Fine fine = existingOpt.orElseGet(() -> {
+            Fine f = new Fine();
+            f.setBorrow(borrow);
+            f.setStudent(borrow.getStudent());
+            return f;
+        });
 
-    @Transactional
-    public double getTotalPendingFines() {
-        recalculateAllPotentialFines();
-        return fineRepository.findAll().stream()
-                .filter(f -> f.getStatus() == Fine.FineStatus.PENDING)
-                .mapToDouble(f -> Math.max(0.0, safeDouble(f.getFineAmount()) - safeDouble(f.getPaidAmount())))
-                .sum();
-    }
+        fine.setDueDate(borrow.getDueDate());
+        fine.setReturnDate(borrow.getReturnDate());
+        fine.setLateDays(lateDays);
+        fine.setFinePerDay(finePerDay);
+        fine.setFineAmount(fineAmount);
 
-    @Transactional
-    public long getPendingFinesCount() {
-        recalculateAllPotentialFines();
-        return fineRepository.findAll().stream()
-                .filter(f -> f.getStatus() == Fine.FineStatus.PENDING)
-                .count();
+        if (fine.getFineStatus() == null) {
+            fine.setFineStatus(Fine.FineStatus.UNPAID);
+        }
+
+        return fineRepository.save(fine);
     }
 }

@@ -239,7 +239,7 @@ public class BorrowService {
         if (fine != null) {
             response.put("fineCreated", true);
             response.put("fineAmount", fine.getFineAmount());
-            response.put("daysOverdue", fine.getDaysOverdue());
+            response.put("lateDays", fine.getLateDays());
             response.put("fine", fine);
         }
 

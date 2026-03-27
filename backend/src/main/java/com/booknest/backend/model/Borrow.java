@@ -39,6 +39,9 @@ public class Borrow {
     @Column(nullable = false)
     private BorrowStatus status = BorrowStatus.PENDING;
 
+    @Column(name = "email_sent", nullable = false)
+    private boolean emailSent = false;
+
     public enum BorrowStatus {
         PENDING, APPROVED, REJECTED, RETURNED, OVERDUE
     }
@@ -108,6 +111,14 @@ public class Borrow {
 
     public void setStatus(BorrowStatus status) {
         this.status = status;
+    }
+
+    public boolean isEmailSent() {
+        return emailSent;
+    }
+
+    public void setEmailSent(boolean emailSent) {
+        this.emailSent = emailSent;
     }
 
     public String getDisplayStatus() {

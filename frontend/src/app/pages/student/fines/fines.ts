@@ -60,20 +60,32 @@ export class FinesComponent implements OnInit, OnDestroy {
 
     this.fineService.getFinesByStudent(userId).subscribe({
       next: (res) => {
-        this.fines = res.data || [];
-        this.totalPending = res.totalPending || 0;
+        if (res.success !== false) {
+          this.fines = Array.isArray(res.data) ? res.data : [];
+          this.totalPending = res.totalPending || 0;
+        } else {
+          this.fines = [];
+          this.totalPending = 0;
+          this.errorMessage = res.message || 'Failed to load fines';
+        }
         this.isLoading = false;
       },
       error: (err) => {
-        this.errorMessage = 'Failed to load fines';
+        console.error('Error loading fines:', err);
+        this.errorMessage = 'Unable to load fines. Please try again.';
         this.isLoading = false;
       }
     });
   }
 
+  retryLoadFines() {
+    this.errorMessage = '';
+    this.loadFines();
+  }
+
   payFine(fineId: number) {
     const fine = this.fines.find((f) => f.id === fineId);
-    const outstanding = fine ? this.getOutstanding(fine) : 0;
+    if (!fine) return;
 
     const userId = this.authService.getUserId();
     if (!userId) {
@@ -88,7 +100,7 @@ export class FinesComponent implements OnInit, OnDestroy {
         if (res.success && res.orderId) {
           this.currentTransactionId = res.orderId;
           this.currentFineId = fineId;
-          this.paymentAmount = res.amount || outstanding;
+          this.paymentAmount = res.amount || fine.fineAmount;
           this.paymentDescription = res.description || 'Fine Payment';
           this.showPaymentModal = true;
         } else {
@@ -133,36 +145,38 @@ export class FinesComponent implements OnInit, OnDestroy {
   payAllFines() {
     if (this.totalPending <= 0) return;
 
-    const pendingFines = this.fines.filter(f => f.status === 'PENDING');
+    const unpaidFines = this.fines.filter(f => f.fineStatus === 'UNPAID');
     const confirmPay = confirm(
-      `Pay all ${pendingFines.length} fines totaling ₹${this.totalPending}?`
+      `Pay all ${unpaidFines.length} fines totaling ₹${this.totalPending}?`
     );
     if (!confirmPay) return;
 
     const payNext = (index: number) => {
-      if (index >= pendingFines.length) {
+      if (index >= unpaidFines.length) {
         this.snackbar.show('All fines processing initiated!');
         this.loadFines();
         return;
       }
 
-      this.payFine(pendingFines[index].id);
+      this.payFine(unpaidFines[index].id);
     };
 
     payNext(0);
   }
 
-  hasOutstanding(fine: Fine): boolean {
-    return this.getOutstanding(fine) > 0;
+  isUnpaid(fine: Fine): boolean {
+    return fine.fineStatus === 'UNPAID';
   }
 
-  getOutstanding(fine: Fine): number {
-    const total = Number(fine.fineAmount || 0);
-    const paid = Number(fine.paidAmount || 0);
-    return Math.max(0, Math.round((total - paid) * 100) / 100);
+  isPaid(fine: Fine): boolean {
+    return fine.fineStatus === 'PAID';
+  }
+
+  getPaidAmount(fine: Fine): number {
+    return this.isPaid(fine) ? fine.fineAmount : 0;
   }
 
   get pendingCount(): number {
-    return this.fines.filter((f) => f.status === 'PENDING').length;
+    return this.fines.filter((f) => f.fineStatus === 'UNPAID').length;
   }
 }

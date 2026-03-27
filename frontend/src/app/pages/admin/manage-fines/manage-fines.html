@@ -7,6 +7,12 @@
       </h1>
       <p class="page-subtitle">View and manage student fines for late book returns</p>
     </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refreshFines()">
+        <span class="material-icons">refresh</span>
+        Refresh
+      </button>
+    </div>
   </div>
 
   <div class="stats-row">
@@ -33,17 +39,8 @@
         <span class="material-icons">check_circle</span>
       </div>
       <div class="stat-content">
-        <span class="stat-value">{{ paidFines.length }}</span>
+        <span class="stat-value">{{ paidCount }}</span>
         <span class="stat-label">Paid Fines</span>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon total">
-        <span class="material-icons">receipt_long</span>
-      </div>
-      <div class="stat-content">
-        <span class="stat-value">{{ fines.length }}</span>
-        <span class="stat-label">Total Fines</span>
       </div>
     </div>
   </div>
@@ -62,8 +59,8 @@
     <div class="filter-group">
       <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
         <option value="all">All Status</option>
-        <option value="pending">Pending</option>
         <option value="paid">Paid</option>
+        <option value="pending">Pending</option>
       </select>
     </div>
   </div>
@@ -89,40 +86,31 @@
         <tr>
           <th>Student</th>
           <th>Book</th>
-          <th>Days Overdue</th>
-          <th>Total Fine</th>
-          <th>Paid</th>
-          <th>Outstanding</th>
-          <th>Status</th>
-          <th>Created</th>
-          <th>Paid Date</th>
+          <th class="text-center">Days Late</th>
+          <th class="text-right">Amount</th>
+          <th class="text-right">Paid</th>
+          <th class="text-center">Date</th>
+          <th class="text-center">Status</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let fine of filteredFines">
           <td>
-            <div class="student-info">
-              <span class="student-name">{{ fine.borrow?.student?.fullName || 'N/A' }}</span>
-              <span class="student-id">SID: {{ fine.borrow?.student?.studentId || 'N/A' }}</span>
+            <div class="student-cell">
+              <div class="avatar">{{ getInitials(fine.studentName || 'NA') }}</div>
+              <span class="student-name">{{ fine.studentName || 'N/A' }}</span>
             </div>
           </td>
-          <td>
-            <div class="book-info">
-              <span class="book-title">{{ fine.borrow?.book?.title || 'N/A' }}</span>
-              <span class="book-author">{{ fine.borrow?.book?.author || '' }}</span>
-            </div>
-          </td>
-          <td class="text-center">{{ fine.daysOverdue }} days</td>
-          <td class="amount">₹{{ fine.fineAmount }}</td>
-          <td>₹{{ fine.paidAmount || 0 }}</td>
-          <td class="amount">₹{{ getOutstanding(fine) }}</td>
-          <td>
-            <span class="status-badge" [class]="getStatusClass(fine.status)">
-              {{ fine.status }}
+          <td class="book-cell">{{ fine.bookTitle || 'N/A' }}</td>
+          <td class="text-center days-cell">{{ fine.lateDays }} days</td>
+          <td class="text-right amount-cell">₹{{ fine.fineAmount }}</td>
+          <td class="text-right paid-cell">₹{{ getPaidAmount(fine) }}</td>
+          <td class="text-center date-cell">{{ fine.createdAt | date: 'MMM dd, yyyy' }}</td>
+          <td class="text-center">
+            <span class="status-badge" [ngClass]="getStatusClass(fine)">
+              {{ getStatus(fine) }}
             </span>
           </td>
-          <td>{{ fine.createdAt | date: 'MMM dd, yyyy' }}</td>
-          <td>{{ fine.paidAt ? (fine.paidAt | date: 'MMM dd, yyyy') : '-' }}</td>
         </tr>
       </tbody>
     </table>

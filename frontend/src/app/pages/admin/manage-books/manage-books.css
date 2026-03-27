@@ -713,3 +713,53 @@
   user-select: none;
   pointer-events: none;
 }
+
+/* ===== CATEGORY SELECT WRAPPER ===== */
+.category-select-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.category-select-wrapper select {
+  flex: 1;
+}
+
+.add-category-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  background: #F8FAFC;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.add-category-btn:hover {
+  border-color: #2563EB;
+  background: #EFF6FF;
+  color: #2563EB;
+}
+
+.add-category-btn .material-icons {
+  font-size: 20px;
+}
+
+/* ===== SMALL MODAL ===== */
+.modal-small {
+  max-width: 400px;
+}
+
+.modal-small .modal-body {
+  padding: 20px;
+}
+
+.modal-small .modal-actions {
+  margin-top: 16px;
+  padding-top: 16px;
+}

@@ -463,6 +463,31 @@
   font-size: 20px;
 }
 
+.btn-read-online {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  background: #4f46e5;
+  color: white;
+  transition: all 0.3s ease-out;
+  text-decoration: none;
+}
+
+.btn-read-online:hover {
+  background: #4338ca;
+  transform: translateY(-2px);
+}
+
+.btn-read-online .material-icons {
+  font-size: 20px;
+}
+
 /* ===== REVIEWS SECTION ===== */
 .reviews-section {
   background: white;

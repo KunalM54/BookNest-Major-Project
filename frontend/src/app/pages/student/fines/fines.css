@@ -137,6 +137,23 @@
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.retry-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.retry-btn:hover {
+  background: #b91c1c;
 }
 
 /* ===== FINES TABLE STYLES ===== */
@@ -269,21 +286,40 @@
   font-size: 16px;
 }
 
-.status-badge.paid {
+.status-badge.paid,
+.status-badge.unpaid {
   display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.paid {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.status-badge.unpaid {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.paid-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 10px;
   background: #dcfce7;
   color: #059669;
   border-radius: 20px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
 }
 
-.paid-date {
-  display: block;
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-top: 4px;
+.paid-badge .material-icons {
+  font-size: 16px;
 }
 
 /* ===== RESPONSIVE ===== */

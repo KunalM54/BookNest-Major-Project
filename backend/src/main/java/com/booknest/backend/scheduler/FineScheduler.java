@@ -6,7 +6,6 @@ import com.booknest.backend.service.FineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -21,7 +20,6 @@ public class FineScheduler {
     private FineService fineService;
 
     @Scheduled(cron = "0 0 0 * * ?")
-    @Transactional
     public void updateOverdueStatus() {
         List<Borrow> approvedBorrows = borrowRepository.findByStatus(Borrow.BorrowStatus.APPROVED);
         
@@ -33,10 +31,8 @@ public class FineScheduler {
         }
     }
 
-    // Daily refresh ensures overdue fines exist for admin dashboards as well.
     @Scheduled(cron = "0 10 0 * * ?")
-    @Transactional
     public void recalculateFines() {
-        fineService.recalculateAllPotentialFines();
+        fineService.recalculateAllFines();
     }
 }

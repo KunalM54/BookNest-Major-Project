@@ -110,6 +110,7 @@ public class BookController {
         // Optional extended fields
         book.setSummary(book.getSummary() == null ? null : book.getSummary().trim());
         book.setAuthorInfo(book.getAuthorInfo() == null ? null : book.getAuthorInfo().trim());
+        book.setBookUrl(book.getBookUrl() == null ? null : book.getBookUrl().trim());
 
         Book savedBook = bookRepository.save(book);
         response.put("success", true);
@@ -152,6 +153,9 @@ public class BookController {
                     }
                     if (bookDetails.getAuthorInfo() != null) {
                         book.setAuthorInfo(bookDetails.getAuthorInfo().trim());
+                    }
+                    if (bookDetails.getBookUrl() != null) {
+                        book.setBookUrl(bookDetails.getBookUrl().trim());
                     }
 
                     // Only update image if a new one is provided; preserve existing image otherwise

@@ -32,13 +32,14 @@
   </div>
 
   <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
+    <span>{{ errorMessage }}</span>
+    <button class="retry-btn" (click)="retryLoadFines()">Retry</button>
   </div>
 
-  <div *ngIf="!isLoading && fines.length === 0" class="empty-state">
+  <div *ngIf="!isLoading && fines.length === 0 && !errorMessage" class="empty-state">
     <span class="material-icons empty-icon">check_circle</span>
     <h3>No fines</h3>
-    <p>You have no pending fines. Keep returning books on time!</p>
+    <p>You have no fines. Keep returning books on time!</p>
   </div>
 
   <div *ngIf="!isLoading && fines.length > 0" class="table-wrapper">
@@ -49,10 +50,10 @@
           <th>Days Overdue</th>
           <th>Fine/Day</th>
           <th>Total Fine</th>
-          <th>Paid</th>
-          <th>Outstanding</th>
-          <th>Created</th>
+          <th>Paid Amount</th>
+          <th>Created Date</th>
           <th>Status</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -61,34 +62,33 @@
             <div class="book-info">
               <span class="material-icons book-icon">menu_book</span>
               <div class="book-details">
-                <span class="book-title">{{ fine.borrow?.book?.title || 'Book' }}</span>
-                <span class="book-author">{{ fine.borrow?.book?.author || 'Unknown Author' }}</span>
+                <span class="book-title">{{ fine.bookTitle || 'Book' }}</span>
+                <span class="book-author">{{ fine.bookAuthor || 'Unknown Author' }}</span>
               </div>
             </div>
           </td>
-          <td>{{ fine.daysOverdue }} days</td>
+          <td>{{ fine.lateDays }} days</td>
           <td>₹{{ fine.finePerDay }}</td>
           <td class="amount">₹{{ fine.fineAmount }}</td>
-          <td>₹{{ fine.paidAmount || 0 }}</td>
-          <td>
-            <span class="amount outstanding" *ngIf="hasOutstanding(fine)">₹{{ getOutstanding(fine) }}</span>
-            <span class="amount settled" *ngIf="!hasOutstanding(fine)">₹0</span>
-          </td>
+          <td class="amount">₹{{ getPaidAmount(fine) }}</td>
           <td>{{ fine.createdAt | date: 'MMM dd, yyyy' }}</td>
+          <td>
+            <span class="status-badge" [class.unpaid]="isUnpaid(fine)" [class.paid]="isPaid(fine)">
+              {{ fine.fineStatus }}
+            </span>
+          </td>
           <td class="action-cell">
             <button
-              *ngIf="hasOutstanding(fine)"
+              *ngIf="isUnpaid(fine)"
               class="btn-pay"
               [disabled]="processingPayment === fine.id"
               (click)="payFine(fine.id)">
               <span class="material-icons">{{ processingPayment === fine.id ? 'hourglass_top' : 'payment' }}</span>
               {{ processingPayment === fine.id ? 'Processing...' : 'Pay' }}
             </button>
-            <span *ngIf="!hasOutstanding(fine)" class="status-badge paid">
+            <span *ngIf="isPaid(fine)" class="paid-badge">
+              <span class="material-icons">check_circle</span>
               Paid
-            </span>
-            <span *ngIf="!hasOutstanding(fine) && fine.paidAt" class="paid-date">
-              {{ fine.paidAt | date: 'MMM dd, yyyy' }}
             </span>
           </td>
         </tr>

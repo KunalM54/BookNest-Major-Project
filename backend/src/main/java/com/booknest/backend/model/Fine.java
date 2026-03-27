@@ -1,6 +1,7 @@
 package com.booknest.backend.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,55 +15,54 @@ public class Fine {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
-    private User student;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "borrow_id", nullable = false)
     private Borrow borrow;
 
-    @Column(nullable = false)
-    private Integer daysOverdue;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
 
-    @Column(name = "fine_amount", nullable = false)
-    private Double fineAmount;
+    @Column(name = "due_date", nullable = false)
+    private LocalDate dueDate;
+
+    @Column(name = "return_date")
+    private LocalDate returnDate;
+
+    @Column(name = "late_days", nullable = false)
+    private Integer lateDays;
 
     @Column(name = "fine_per_day", nullable = false)
     private Double finePerDay;
 
-    @Column(name = "paid_amount", nullable = false)
-    private Double paidAmount = 0.0;
+    @Column(name = "fine_amount", nullable = false)
+    private Double fineAmount;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private FineStatus status;
+    @Column(name = "fine_status", nullable = false)
+    private FineStatus fineStatus = FineStatus.UNPAID;
+
+    @Column(name = "payment_id")
+    private Long paymentId;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "paid_at")
-    private LocalDateTime paidAt;
-
-    @Column(name = "payment_method")
-    private String paymentMethod;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public enum FineStatus {
-        PENDING,
+        UNPAID,
         PAID
     }
 
     public Fine() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    public Fine(User student, Borrow borrow, Integer daysOverdue, Double finePerDay) {
-        this.student = student;
-        this.borrow = borrow;
-        this.daysOverdue = daysOverdue;
-        this.finePerDay = finePerDay;
-        this.fineAmount = daysOverdue * finePerDay;
-        this.paidAmount = 0.0;
-        this.status = FineStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -73,14 +73,6 @@ public class Fine {
         this.id = id;
     }
 
-    public User getStudent() {
-        return student;
-    }
-
-    public void setStudent(User student) {
-        this.student = student;
-    }
-
     public Borrow getBorrow() {
         return borrow;
     }
@@ -89,20 +81,36 @@ public class Fine {
         this.borrow = borrow;
     }
 
-    public Integer getDaysOverdue() {
-        return daysOverdue;
+    public User getStudent() {
+        return student;
     }
 
-    public void setDaysOverdue(Integer daysOverdue) {
-        this.daysOverdue = daysOverdue;
+    public void setStudent(User student) {
+        this.student = student;
     }
 
-    public Double getFineAmount() {
-        return fineAmount;
+    public LocalDate getDueDate() {
+        return dueDate;
     }
 
-    public void setFineAmount(Double fineAmount) {
-        this.fineAmount = fineAmount;
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
+
+    public LocalDate getReturnDate() {
+        return returnDate;
+    }
+
+    public void setReturnDate(LocalDate returnDate) {
+        this.returnDate = returnDate;
+    }
+
+    public Integer getLateDays() {
+        return lateDays;
+    }
+
+    public void setLateDays(Integer lateDays) {
+        this.lateDays = lateDays;
     }
 
     public Double getFinePerDay() {
@@ -113,20 +121,28 @@ public class Fine {
         this.finePerDay = finePerDay;
     }
 
-    public Double getPaidAmount() {
-        return paidAmount;
+    public Double getFineAmount() {
+        return fineAmount;
     }
 
-    public void setPaidAmount(Double paidAmount) {
-        this.paidAmount = paidAmount;
+    public void setFineAmount(Double fineAmount) {
+        this.fineAmount = fineAmount;
     }
 
-    public FineStatus getStatus() {
-        return status;
+    public FineStatus getFineStatus() {
+        return fineStatus;
     }
 
-    public void setStatus(FineStatus status) {
-        this.status = status;
+    public void setFineStatus(FineStatus fineStatus) {
+        this.fineStatus = fineStatus;
+    }
+
+    public Long getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(Long paymentId) {
+        this.paymentId = paymentId;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -137,19 +153,15 @@ public class Fine {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getPaidAt() {
-        return paidAt;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setPaidAt(LocalDateTime paidAt) {
-        this.paidAt = paidAt;
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
-    public String getPaymentMethod() {
-        return paymentMethod;
-    }
-
-    public void setPaymentMethod(String paymentMethod) {
-        this.paymentMethod = paymentMethod;
+    public boolean isPaid() {
+        return this.fineStatus == FineStatus.PAID;
     }
 }

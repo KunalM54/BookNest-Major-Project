@@ -2,32 +2,23 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { RouterLink } from '@angular/router';
 
 interface Fine {
   id: number;
-  daysOverdue: number;
-  fineAmount: number;
+  bookTitle?: string;
+  bookAuthor?: string;
+  dueDate?: string;
+  returnDate?: string;
+  lateDays: number;
   finePerDay: number;
+  fineAmount: number;
+  fineStatus: 'UNPAID' | 'PAID';
+  paymentId?: number;
+  createdAt?: string;
+  borrowId?: number;
+  studentName?: string;
+  studentId?: string;
   paidAmount?: number;
-  status: 'PENDING' | 'PAID';
-  createdAt: string;
-  paidAt?: string;
-  paymentMethod?: string;
-  borrow?: {
-    id: number;
-    book?: {
-      id: number;
-      title: string;
-      author: string;
-    };
-    student?: {
-      id: number;
-      fullName: string;
-      email: string;
-      studentId: string;
-    };
-  };
 }
 
 @Component({
@@ -46,7 +37,9 @@ export class ManageFinesComponent implements OnInit {
   statusFilter = 'all';
 
   totalPending = 0;
+  totalPaid = 0;
   pendingCount = 0;
+  paidCount = 0;
 
   constructor(private http: HttpClient) {}
 
@@ -58,11 +51,18 @@ export class ManageFinesComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.get<any>('http://localhost:8080/api/fines/admin/all').subscribe({
+    this.http.get<any>('http://localhost:8080/api/admin/fines/all').subscribe({
       next: (res) => {
-        this.fines = res.data || [];
-        this.totalPending = res.totalPending || 0;
-        this.pendingCount = res.pendingCount || 0;
+        if (res.success !== false) {
+          this.fines = Array.isArray(res.data) ? res.data : [];
+          this.totalPending = res.totalPending || 0;
+          this.totalPaid = res.totalPaid || 0;
+          this.pendingCount = res.pendingCount || 0;
+          this.paidCount = res.paidCount || 0;
+        } else {
+          this.fines = [];
+          this.errorMessage = res.message || 'Failed to load fines';
+        }
         this.applyFilters();
         this.isLoading = false;
       },
@@ -73,36 +73,60 @@ export class ManageFinesComponent implements OnInit {
     });
   }
 
+  refreshFines() {
+    this.loadFines();
+  }
+
   applyFilters() {
     this.filteredFines = this.fines.filter(fine => {
       const matchesSearch = !this.searchTerm || 
-        fine.borrow?.book?.title?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        fine.borrow?.student?.fullName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        fine.borrow?.student?.studentId?.toLowerCase().includes(this.searchTerm.toLowerCase());
+        fine.bookTitle?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        fine.studentName?.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        fine.studentId?.toLowerCase().includes(this.searchTerm.toLowerCase());
 
+      const status = this.getStatus(fine);
       const matchesStatus = this.statusFilter === 'all' || 
-        (this.statusFilter === 'pending' && fine.status === 'PENDING') ||
-        (this.statusFilter === 'paid' && fine.status === 'PAID');
+        (this.statusFilter === 'paid' && status === 'Paid') ||
+        (this.statusFilter === 'pending' && (status === 'Pending' || status === 'Overdue'));
 
       return matchesSearch && matchesStatus;
     });
   }
 
-  getStatusClass(status: string): string {
-    return status === 'PENDING' ? 'pending' : 'paid';
+  getStatus(fine: Fine): string {
+    const paid = fine.paidAmount ?? (fine.fineStatus === 'PAID' ? fine.fineAmount : 0);
+    
+    if (paid > 0 && paid >= fine.fineAmount) {
+      return 'Paid';
+    }
+    
+    if (fine.returnDate === null || fine.returnDate === undefined) {
+      const dueDate = fine.dueDate ? new Date(fine.dueDate) : null;
+      if (dueDate && dueDate < new Date()) {
+        return 'Overdue';
+      }
+    }
+    
+    return 'Pending';
   }
 
-  getOutstanding(fine: Fine): number {
-    const total = Number(fine.fineAmount || 0);
-    const paid = Number(fine.paidAmount || 0);
-    return Math.max(0, Math.round((total - paid) * 100) / 100);
+  getStatusClass(fine: Fine): string {
+    const status = this.getStatus(fine);
+    if (status === 'Paid') return 'paid';
+    if (status === 'Overdue') return 'overdue';
+    return 'pending';
   }
 
-  get pendingFines() {
-    return this.fines.filter(f => f.status === 'PENDING');
+  getPaidAmount(fine: Fine): number {
+    return fine.paidAmount ?? (fine.fineStatus === 'PAID' ? fine.fineAmount : 0);
   }
 
-  get paidFines() {
-    return this.fines.filter(f => f.status === 'PAID');
+  getInitials(name: string): string {
+    if (!name) return '?';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 }

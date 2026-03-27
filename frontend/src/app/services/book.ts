@@ -16,6 +16,7 @@ export interface Book {
   summary?: string;
   authorInfo?: string;
   price?: number;
+  bookUrl?: string;
 }
 
 @Injectable({

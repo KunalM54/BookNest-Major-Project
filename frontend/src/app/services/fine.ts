@@ -4,27 +4,19 @@ import { Observable } from 'rxjs';
 
 export interface Fine {
   id: number;
-  daysOverdue: number;
-  fineAmount: number;
+  bookTitle?: string;
+  bookAuthor?: string;
+  dueDate?: string;
+  returnDate?: string;
+  lateDays: number;
   finePerDay: number;
-  paidAmount?: number;
-  status: 'PENDING' | 'PAID';
-  createdAt: string;
-  paidAt?: string;
-  paymentMethod?: string;
-  borrow?: {
-    id: number;
-    book?: {
-      id: number;
-      title?: string;
-      author?: string;
-    };
-    student?: {
-      id: number;
-      fullName?: string;
-      studentId?: string;
-    };
-  };
+  fineAmount: number;
+  fineStatus: 'UNPAID' | 'PAID';
+  paymentId?: number;
+  createdAt?: string;
+  borrowId?: number;
+  studentName?: string;
+  studentId?: string;
 }
 
 @Injectable({
@@ -39,12 +31,12 @@ export class FineService {
     return this.http.get<any>(`${this.apiUrl}/student/${studentId}`);
   }
 
-  getAllFinesByStudent(studentId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/student/${studentId}/all`);
+  getFineById(fineId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${fineId}`);
   }
 
-  payFine(fineId: number, paymentMethod: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/pay/${fineId}`, { paymentMethod });
+  payFine(fineId: number, paymentId?: number): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/pay/${fineId}`, { paymentId });
   }
 
   calculateFine(daysOverdue: number): Observable<any> {
@@ -53,9 +45,5 @@ export class FineService {
 
   calculateFineForBorrow(borrowId: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/borrow/${borrowId}`);
-  }
-
-  calculateFinesForStudent(studentId: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/student/${studentId}/calculate`);
   }
 }

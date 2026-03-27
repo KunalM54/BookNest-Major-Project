@@ -22,7 +22,7 @@
     <div class="filters-left">
       <div class="filter-group">
         <select [(ngModel)]="selectedCategory" (change)="setCategory(selectedCategory)" class="filter-select">
-          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          <option *ngFor="let cat of filterCategories" [value]="cat.name">{{ cat.name }}</option>
         </select>
         <span class="material-icons select-icon">expand_more</span>
       </div>
@@ -165,15 +165,16 @@
 
             <div class="form-group">
               <label for="category">Category *</label>
-              <select id="category" formControlName="category" class="form-control"
-                [class.form-invalid]="form.get('category')!.invalid && form.get('category')!.touched">
-                <option value="">Select Category</option>
-                <option value="Technology">Technology</option>
-                <option value="Academic">Academic</option>
-                <option value="Science">Science</option>
-                <option value="Literature">Literature</option>
-                <option value="History">History</option>
-              </select>
+              <div class="category-select-wrapper">
+                <select id="category" formControlName="category" class="form-control"
+                  [class.form-invalid]="form.get('category')!.invalid && form.get('category')!.touched">
+                  <option value="">Select Category</option>
+                  <option *ngFor="let cat of formCategories" [value]="cat.name">{{ cat.name }}</option>
+                </select>
+                <button type="button" class="add-category-btn" (click)="openCategoryModal()" title="Add new category">
+                  <span class="material-icons">add</span>
+                </button>
+              </div>
               <div class="form-error" *ngIf="form.get('category')?.invalid && form.get('category')?.touched">Category is required.</div>
             </div>
 
@@ -193,16 +194,31 @@
             <textarea id="authorInfo" formControlName="authorInfo" class="form-control" rows="2" placeholder="Enter author biography..."></textarea>
           </div>
 
-          <div class="form-group">
-            <label for="totalCopies">Total Copies</label>
-            <input type="number" id="totalCopies" formControlName="totalCopies" min="1" class="form-control"
-              [class.form-invalid]="form.get('totalCopies')!.invalid && form.get('totalCopies')!.touched">
-            <div class="form-error" *ngIf="form.get('totalCopies')!.invalid && form.get('totalCopies')!.touched">
-              <span *ngIf="form.get('totalCopies')?.errors?.['required']">Total copies is required.</span>
-              <span *ngIf="form.get('totalCopies')?.errors?.['min']">Total copies must be at least 1.</span>
+            <div class="form-group">
+              <label for="totalCopies">Total Copies</label>
+              <input type="number" id="totalCopies" formControlName="totalCopies" min="1" class="form-control"
+                [class.form-invalid]="form.get('totalCopies')!.invalid && form.get('totalCopies')!.touched">
+              <div class="form-error" *ngIf="form.get('totalCopies')!.invalid && form.get('totalCopies')!.touched">
+                <span *ngIf="form.get('totalCopies')?.errors?.['required']">Total copies is required.</span>
+                <span *ngIf="form.get('totalCopies')?.errors?.['min']">Total copies must be at least 1.</span>
+              </div>
+              <small *ngIf="isEditMode && editingBook" class="form-hint">Available: {{ editingBook.availableCopies }} / {{ form.get('totalCopies')?.value || bookForm.totalCopies }}</small>
             </div>
-            <small *ngIf="isEditMode && editingBook" class="form-hint">Available: {{ editingBook.availableCopies }} / {{ form.get('totalCopies')?.value || bookForm.totalCopies }}</small>
-          </div>
+
+            <div class="form-group">
+              <label for="bookUrl">
+                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">link</span>
+                Book URL (Optional)
+              </label>
+              <div class="url-input-wrapper">
+                <input type="url" id="bookUrl" formControlName="bookUrl" class="form-control" 
+                  placeholder="Enter book URL (PDF / Website link)">
+              </div>
+              <small class="form-hint">Users can read this book online using this link</small>
+              <div class="form-error" *ngIf="form.get('bookUrl')!.invalid && form.get('bookUrl')!.touched">
+                Please enter a valid URL
+              </div>
+            </div>
 
           <!-- Book Cover Section with Tabs -->
           <div class="form-group">
@@ -249,6 +265,27 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Add Category Modal -->
+  <div class="modal-overlay" *ngIf="showCategoryModal" (click)="closeCategoryModal()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Add New Category</h2>
+        <button class="close-btn" (click)="closeCategoryModal()"><span class="material-icons">close</span></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="newCategoryName">Category Name *</label>
+          <input type="text" id="newCategoryName" [(ngModel)]="newCategoryName" class="form-control" 
+            placeholder="Enter category name" (keyup.enter)="saveNewCategory()">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeCategoryModal()">Cancel</button>
+          <button type="button" class="btn-primary" (click)="saveNewCategory()">Add Category</button>
+        </div>
+      </div>
     </div>
   </div>
 

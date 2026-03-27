@@ -105,9 +105,9 @@ public class DemoPaymentService {
         }
 
         Fine fine = fineOpt.get();
-        double outstanding = Math.max(0, fine.getFineAmount() - (fine.getPaidAmount() != null ? fine.getPaidAmount() : 0));
+        double outstanding = fine.getFineAmount();
 
-        if (outstanding <= 0) {
+        if (fine.getFineStatus() == Fine.FineStatus.PAID) {
             response.put("success", false);
             response.put("message", "This fine has already been paid");
             return response;
@@ -196,11 +196,10 @@ public class DemoPaymentService {
         Map<String, Object> response = new HashMap<>();
 
         try {
-            Fine fine = fineService.payFine(fineId, "DEMO", null);
+            fineService.payFine(fineId, null);
 
             response.put("success", true);
             response.put("message", "Fine payment successful (Demo Mode)");
-            response.put("fine", fine);
             return response;
 
         } catch (Exception e) {

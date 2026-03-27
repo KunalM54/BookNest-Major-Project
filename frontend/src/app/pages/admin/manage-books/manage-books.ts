@@ -5,6 +5,7 @@ import { Book, BookService } from '../../../services/book';
 import { SnackbarService } from '../../../services/snackbar';
 import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 import { scrollToTop } from '../../../utils/scroll-to-top';
+import { CategoryService, Category } from '../../../services/category';
 
 interface BookForm {
   id: number | null;
@@ -17,6 +18,7 @@ interface BookForm {
   price: number | null;
   summary: string | null;
   authorInfo: string | null;
+  bookUrl: string | null;
 }
 
 @Component({
@@ -49,14 +51,10 @@ export class ManageBooksComponent implements OnInit {
   pagingMode: 'server' | 'client' = 'server';
   private hasLoadedAllBooks = false;
 
-  categories = [
-    'All',
-    'Technology',
-    'Academic',
-    'Science',
-    'Literature',
-    'History'
-  ];
+  filterCategories: Category[] = [];
+  formCategories: Category[] = [];
+  newCategoryName = '';
+  showCategoryModal = false;
 
   showModal = false;
   isEditMode = false;
@@ -66,6 +64,7 @@ export class ManageBooksComponent implements OnInit {
 
   constructor(
     private bookService: BookService,
+    private categoryService: CategoryService,
     private fb: FormBuilder,
     private snackbarService: SnackbarService
   ) { }
@@ -84,7 +83,59 @@ export class ManageBooksComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.loadCategories();
     this.refreshBooks(true);
+  }
+
+  loadCategories() {
+    this.categoryService.getActiveCategories().subscribe({
+      next: (categories) => {
+        this.filterCategories = [{ id: 0, name: 'All', displayOrder: -1 } as Category, ...categories];
+        this.formCategories = categories;
+      },
+      error: () => {
+        this.snackbarService.show('Failed to load categories');
+      }
+    });
+  }
+
+  openCategoryModal() {
+    this.newCategoryName = '';
+    this.showCategoryModal = true;
+  }
+
+  closeCategoryModal() {
+    this.showCategoryModal = false;
+    this.newCategoryName = '';
+  }
+
+  saveNewCategory() {
+    const name = this.newCategoryName.trim();
+    if (!name) {
+      this.snackbarService.show('Category name is required');
+      return;
+    }
+
+    this.categoryService.createCategory(name).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.snackbarService.show('Category created successfully!');
+          const newCategory = response.data as Category;
+          this.formCategories = [...this.formCategories, newCategory];
+          this.filterCategories = [
+            { id: 0, name: 'All', displayOrder: -1 } as Category,
+            ...this.formCategories
+          ];
+          this.form.patchValue({ category: newCategory.name });
+          this.closeCategoryModal();
+        } else {
+          this.snackbarService.show(response.message || 'Failed to create category');
+        }
+      },
+      error: () => {
+        this.snackbarService.show('Failed to create category');
+      }
+    });
   }
 
   private isClientMode(): boolean {
@@ -177,7 +228,8 @@ export class ManageBooksComponent implements OnInit {
       totalCopies: 1,
       price: null,
       summary: null,
-      authorInfo: null
+      authorInfo: null,
+      bookUrl: null
     };
   }
 
@@ -191,7 +243,8 @@ export class ManageBooksComponent implements OnInit {
       price: [null],
       summary: [''],
       authorInfo: [''],
-      imageUrl: ['']
+      imageUrl: [''],
+      bookUrl: ['', Validators.pattern(/^https?:\/\/.+/)]
     });
   }
 
@@ -246,7 +299,7 @@ export class ManageBooksComponent implements OnInit {
   }
 
   setCategory(cat: string) {
-    this.selectedCategory = cat;
+    this.selectedCategory = cat === 'All' ? 'All' : cat;
     this.refreshBooks(true);
   }
 
@@ -344,7 +397,8 @@ export class ManageBooksComponent implements OnInit {
       totalCopies: book.totalCopies,
       price: book.price || null,
       summary: book.summary || null,
-      authorInfo: book.authorInfo || null
+      authorInfo: book.authorInfo || null,
+      bookUrl: book.bookUrl || null
     };
     this.createForm();
     this.form.patchValue({
@@ -355,7 +409,8 @@ export class ManageBooksComponent implements OnInit {
       totalCopies: book.totalCopies,
       price: book.price || null,
       summary: book.summary || '',
-      authorInfo: book.authorInfo || ''
+      authorInfo: book.authorInfo || '',
+      bookUrl: book.bookUrl || ''
     });
     this.imagePreview = book.imageData ?? null;
     this.selectedImageName = book.imageData ? 'Current saved cover' : '';
@@ -546,7 +601,8 @@ export class ManageBooksComponent implements OnInit {
       totalCopies: formValue.totalCopies,
       price: formValue.price || null,
       summary: formValue.summary || null,
-      authorInfo: formValue.authorInfo || null
+      authorInfo: formValue.authorInfo || null,
+      bookUrl: formValue.bookUrl ? formValue.bookUrl.trim() : null
     } as Book;
 
     if (this.isEditMode && this.bookForm.id) {
