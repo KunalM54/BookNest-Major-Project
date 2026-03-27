@@ -9,6 +9,7 @@ import { BorrowService } from '../../../services/borrow';
 import { Review, ReviewService } from '../../../services/review';
 import { SnackbarService } from '../../../services/snackbar';
 import { WishlistService } from '../../../services/wishlist';
+import { AvailabilityAlertService } from '../../../services/availability-alert';
 
 @Component({
   selector: 'app-book-detail',
@@ -37,10 +38,13 @@ export class BookDetailComponent implements OnInit, OnDestroy {
 
   inWishlist = false;
   wishlistLoading = false;
+  hasAlert = false;
+  alertLoading = false;
 
   reviewRating = 5;
   reviewComment = '';
   reviewError = '';
+  descriptionTruncated = true;
 
   private destroy$ = new Subject<void>();
 
@@ -52,7 +56,8 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     private borrowService: BorrowService,
     private reviewService: ReviewService,
     private snackbar: SnackbarService,
-    private wishlistService: WishlistService
+    private wishlistService: WishlistService,
+    private alertService: AvailabilityAlertService
   ) { }
 
   ngOnInit(): void {
@@ -92,6 +97,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
         this.loadReviews();
         this.loadEligibility();
         this.checkWishlist();
+        this.checkAlert();
       },
       error: () => {
         this.loading = false;
@@ -382,9 +388,77 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     });
   }
 
+  private checkAlert() {
+    const userId = this.authService.getUserId();
+    if (!userId || !this.book?.id) return;
+
+    this.alertService.getAlerts(userId).subscribe({
+      next: (alerts) => {
+        this.hasAlert = alerts.some(a => a.bookId === this.book?.id && a.isActive);
+      },
+      error: () => {
+        this.hasAlert = false;
+      }
+    });
+  }
+
+  toggleAlert() {
+    const userId = this.authService.getUserId();
+    if (!userId || !this.book?.id) return;
+
+    this.alertLoading = true;
+
+    if (this.hasAlert) {
+      this.alertService.getAlerts(userId).subscribe({
+        next: (alerts) => {
+          const alert = alerts.find(a => a.bookId === this.book?.id && a.isActive);
+          if (alert?.id) {
+            this.alertService.removeAlert(alert.id, userId).subscribe({
+              next: (res) => {
+                this.alertLoading = false;
+                if (res.success) {
+                  this.hasAlert = false;
+                  this.snackbar.show('Alert removed');
+                }
+              },
+              error: () => {
+                this.alertLoading = false;
+                this.snackbar.show('Failed to remove alert');
+              }
+            });
+          }
+        },
+        error: () => {
+          this.alertLoading = false;
+        }
+      });
+    } else {
+      this.alertService.createAlert(userId, this.book.id).subscribe({
+        next: (res) => {
+          this.alertLoading = false;
+          if (res.success) {
+            this.hasAlert = true;
+            this.snackbar.show(res.message || 'Alert created');
+          } else {
+            this.snackbar.show(res.message || 'Failed to create alert');
+          }
+        },
+        error: () => {
+          this.alertLoading = false;
+          this.snackbar.show('Failed to create alert');
+        }
+      });
+    }
+  }
+
   starArray(value: number): number[] {
     const v = Math.max(0, Math.min(5, Math.round(value)));
     return Array.from({ length: 5 }, (_, i) => (i < v ? 1 : 0));
+  }
+
+  scrollToReviews() {
+    const reviewsSection = document.getElementById('reviews-section');
+    reviewsSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   submitReview() {

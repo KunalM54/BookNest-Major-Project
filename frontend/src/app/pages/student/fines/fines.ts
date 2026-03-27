@@ -121,8 +121,8 @@ export class FinesComponent implements OnInit, OnDestroy {
     payNext(0);
   }
 
-  getStatusClass(status: string): string {
-    return status === 'PENDING' ? 'pending' : 'paid';
+  hasOutstanding(fine: Fine): boolean {
+    return this.getOutstanding(fine) > 0;
   }
 
   getOutstanding(fine: Fine): number {

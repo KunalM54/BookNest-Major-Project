@@ -11,6 +11,16 @@
         {{ history.length }} book{{ history.length !== 1 ? 's' : '' }} returned
       </p>
     </div>
+    <div class="header-actions" *ngIf="history.length > 0">
+      <button class="btn-export" (click)="exportCsv()" title="Export as CSV">
+        <span class="material-icons">description</span>
+        CSV
+      </button>
+      <button class="btn-export" (click)="exportPdf()" title="Export as PDF">
+        <span class="material-icons">picture_as_pdf</span>
+        PDF
+      </button>
+    </div>
   </div>
 
   <!-- Search Section -->

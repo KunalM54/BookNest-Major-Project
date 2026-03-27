@@ -25,8 +25,11 @@
   </div>
 
   <div *ngIf="!loading && book" class="book-detail-container">
-    <div class="book-main-card">
-      <div class="book-cover-section">
+    <!-- Split View Layout -->
+    <div class="book-split-view">
+      
+      <!-- LEFT COLUMN - Visuals -->
+      <div class="book-visual-column">
         <div class="cover-wrapper">
           <img 
             *ngIf="hasImage()" 
@@ -45,112 +48,159 @@
         </div>
       </div>
 
-      <div class="book-info-section">
+      <!-- RIGHT COLUMN - Info -->
+      <div class="book-info-column">
         <div class="book-header">
-          <h2 class="book-title">{{ book.title }}</h2>
-          <p class="book-author">by {{ book.author }}</p>
+          <h1 class="book-title">{{ book.title }}</h1>
+          <p class="book-author">
+            by <a href="#" class="author-link" (click)="$event.preventDefault()">{{ book.author }}</a>
+          </p>
         </div>
 
+        <!-- Quick Stats Bar -->
+        <div class="quick-stats">
+          <div class="stat-item">
+            <span class="material-icons">category</span>
+            <span class="stat-text">{{ book.category }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="material-icons">inventory_2</span>
+            <span class="stat-text">{{ book.totalCopies }} pages</span>
+          </div>
+          <div class="stat-item">
+            <span class="material-icons">translate</span>
+            <span class="stat-text">English</span>
+          </div>
+        </div>
+
+        <!-- Price Section -->
         <div class="price-section" *ngIf="book.price && book.price > 0">
           <span class="price-label">Price</span>
           <span class="price-value">₹{{ book.price }}</span>
         </div>
 
-        <div class="meta-section">
-          <div class="meta-row">
-            <div class="meta-item">
-              <span class="meta-label">ISBN</span>
-              <span class="meta-value">{{ book.isbn }}</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Category</span>
-              <span class="meta-value">{{ book.category }}</span>
-            </div>
-          </div>
-          <div class="meta-row">
-            <div class="meta-item">
-              <span class="meta-label">Availability</span>
-              <span class="meta-value">{{ book.availableCopies }} / {{ book.totalCopies }} copies</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Added On</span>
-              <span class="meta-value">{{ book.addedDate ? (book.addedDate | date: 'MMM dd, yyyy') : 'N/A' }}</span>
-            </div>
-          </div>
+        <!-- Availability Info -->
+        <div class="availability-info">
+          <span class="availability-label">Availability</span>
+          <span class="availability-value">
+            <span class="copies-count" [class.low-stock]="book.availableCopies <= 3">
+              {{ book.availableCopies }}
+            </span>
+            of {{ book.totalCopies }} copies available
+          </span>
         </div>
 
+        <!-- Description with Read More Toggle -->
         <div class="description-section" *ngIf="book.summary">
-          <h4 class="section-title">Summary</h4>
-          <p class="description-text">{{ book.summary }}</p>
+          <h4 class="section-title">Description</h4>
+          <p class="description-text" [class.truncated]="descriptionTruncated && book.summary.length > 300">
+            {{ book.summary }}
+          </p>
+          <button 
+            *ngIf="book.summary.length > 300" 
+            class="read-more-btn"
+            (click)="descriptionTruncated = !descriptionTruncated"
+          >
+            {{ descriptionTruncated ? 'Read More' : 'Show Less' }}
+          </button>
         </div>
 
+        <!-- About Author -->
         <div class="author-section" *ngIf="book.authorInfo">
           <h4 class="section-title">About Author</h4>
           <p class="description-text">{{ book.authorInfo }}</p>
         </div>
 
-        <div class="actions-section">
+        <!-- Action Row -->
+        <div class="actions-row">
           <button class="btn-borrow" [disabled]="!!borrowDisabledReason" (click)="requestBorrow()">
             <span class="material-icons">menu_book</span>
-            Borrow Book
+            Borrow Now
+          </button>
+          <button class="btn-wishlist" (click)="toggleWishlist()" [disabled]="wishlistLoading">
+            <span class="material-icons">{{ inWishlist ? 'favorite' : 'favorite_border' }}</span>
+            {{ inWishlist ? 'Saved' : 'Save' }}
+          </button>
+          <button class="btn-alert" *ngIf="!isAvailable() && !hasPendingRequest && !hasActiveBorrow" (click)="toggleAlert()" [disabled]="alertLoading">
+            <span class="material-icons">{{ hasAlert ? 'notifications_active' : 'notifications_none' }}</span>
+            {{ hasAlert ? 'Alert On' : 'Notify Me' }}
           </button>
           <button class="btn-buy" *ngIf="book.price && book.price > 0" (click)="buyBook()">
             <span class="material-icons">shopping_cart</span>
             Buy - ₹{{ book.price }}
           </button>
-          <button class="btn-wishlist" (click)="toggleWishlist()" [disabled]="wishlistLoading">
-            <span class="material-icons">{{ inWishlist ? 'favorite' : 'favorite_border' }}</span>
-            {{ inWishlist ? 'In Wishlist' : 'Add to Wishlist' }}
-          </button>
-        </div>
-      </div>
-
-      <div class="rating-section">
-        <div class="rating-card">
-          <div class="avg-rating">{{ averageRating | number: '1.1-1' }}</div>
-          <div class="stars">
-            <span class="material-icons star" *ngFor="let s of starArray(averageRating)">{{ s ? 'star' : 'star_border' }}</span>
-          </div>
-          <div class="review-count">{{ totalReviews }} review{{ totalReviews !== 1 ? 's' : '' }}</div>
         </div>
       </div>
     </div>
 
-    <div class="reviews-card">
+    <!-- Bottom Section - Reviews & Ratings -->
+    <div id="reviews-section" class="reviews-section">
       <div class="reviews-header">
-        <h3 class="section-title">Reviews & Ratings</h3>
+        <h2 class="section-title">Reviews & Ratings</h2>
+        <div class="rating-summary" *ngIf="totalReviews > 0">
+          <span class="avg-rating">{{ averageRating | number: '1.1-1' }}</span>
+          <div class="stars">
+            <span class="material-icons star" *ngFor="let s of starArray(averageRating)">{{ s ? 'star' : 'star_border' }}</span>
+          </div>
+          <span class="review-count">{{ totalReviews }} review{{ totalReviews !== 1 ? 's' : '' }}</span>
+        </div>
       </div>
 
-      <div class="write-review-section" *ngIf="canWriteReview">
-        <h4 class="sub-title">{{ hasExistingReview ? 'Update Your Review' : 'Write a Review' }}</h4>
-        <div class="rating-select">
-          <label class="label">Rating</label>
-          <select [(ngModel)]="reviewRating" class="select">
-            <option [ngValue]="5">5 - Excellent</option>
-            <option [ngValue]="4">4 - Very Good</option>
-            <option [ngValue]="3">3 - Good</option>
-            <option [ngValue]="2">2 - Fair</option>
-            <option [ngValue]="1">1 - Poor</option>
-          </select>
+      <!-- Write Review Card -->
+      <div class="write-review-card" *ngIf="canWriteReview">
+        <div class="write-review-header">
+          <span class="material-icons">edit</span>
+          <span>{{ hasExistingReview ? 'Update Your Review' : 'Share Your Thoughts' }}</span>
         </div>
-        <div class="comment-input">
-          <label class="label">Comment (optional)</label>
-          <textarea [(ngModel)]="reviewComment" class="textarea" rows="3" maxlength="2000"
-            placeholder="Share your thoughts about this book..."></textarea>
-          <div class="char-count">{{ (reviewComment || '').length }}/2000</div>
+        <div class="review-form">
+          <div class="rating-select">
+            <label class="label">Your Rating</label>
+            <div class="star-input">
+              <span 
+                class="material-icons star" 
+                *ngFor="let s of [1,2,3,4,5]"
+                (click)="reviewRating = s"
+                [class.filled]="s <= reviewRating"
+              >
+                {{ s <= reviewRating ? 'star' : 'star_border' }}
+              </span>
+            </div>
+          </div>
+          <div class="comment-input">
+            <label class="label">Your Review (optional)</label>
+            <textarea 
+              [(ngModel)]="reviewComment" 
+              class="textarea" 
+              rows="3" 
+              maxlength="2000"
+              placeholder="What did you think about this book?"
+            ></textarea>
+            <div class="char-count">{{ (reviewComment || '').length }}/2000</div>
+          </div>
+          <div class="error" *ngIf="reviewError">{{ reviewError }}</div>
+          <button class="btn-submit" (click)="submitReview()" [disabled]="submittingReview">
+            <span class="material-icons">{{ submittingReview ? 'hourglass_top' : 'send' }}</span>
+            {{ submittingReview ? 'Saving...' : (hasExistingReview ? 'Update Review' : 'Submit Review') }}
+          </button>
         </div>
-        <div class="error" *ngIf="reviewError">{{ reviewError }}</div>
-        <button class="btn-submit" (click)="submitReview()" [disabled]="submittingReview">
-          <span class="material-icons">{{ submittingReview ? 'hourglass_top' : 'rate_review' }}</span>
-          {{ submittingReview ? 'Saving...' : hasExistingReview ? 'Update Review' : 'Submit Review' }}
-        </button>
       </div>
 
+      <!-- Not Eligible Banner -->
       <div class="info-banner" *ngIf="!canWriteReview">
         <span class="material-icons">info</span>
         <span>You can write a review only after you return this book.</span>
       </div>
 
+      <!-- Empty State - Be the first to review -->
+      <div class="empty-reviews-card" *ngIf="reviews.length === 0 && !canWriteReview">
+        <div class="empty-icon-wrapper">
+          <span class="material-icons">rate_review</span>
+        </div>
+        <h3>No reviews yet</h3>
+        <p>Be the first to share your thoughts about this book!</p>
+      </div>
+
+      <!-- Reviews List -->
       <div class="reviews-list" *ngIf="reviews.length > 0">
         <div class="review-item" *ngFor="let r of reviews">
           <div class="review-header">
@@ -167,11 +217,6 @@
           </div>
           <div class="review-comment" *ngIf="r.comment && r.comment.trim()">{{ r.comment }}</div>
         </div>
-      </div>
-
-      <div class="empty-reviews" *ngIf="reviews.length === 0">
-        <span class="material-icons">chat_bubble_outline</span>
-        <p>No reviews yet. Be the first to review!</p>
       </div>
     </div>
   </div>

@@ -1,0 +1,118 @@
+<div class="page-container">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <span class="material-icons page-icon">emoji_events</span>
+        Reading Goals
+      </h1>
+      <p class="page-subtitle">Set and track your reading targets</p>
+    </div>
+    <button class="btn-add" (click)="openAddModal()">
+      <span class="material-icons">add</span>
+      New Goal
+    </button>
+  </div>
+
+  <!-- Active Goals Section -->
+  <div class="active-goals-section" *ngIf="activeGoals.length > 0">
+    <h2 class="section-title">Active Goals</h2>
+    <div class="active-goals-grid">
+      <div class="goal-card active" *ngFor="let goal of activeGoals">
+        <div class="goal-header">
+          <span class="goal-type">{{ getGoalTypeLabel(goal.goalType) }}</span>
+          <span class="goal-status" [class.completed]="goal.isCompleted">
+            {{ goal.isCompleted ? 'Completed' : 'In Progress' }}
+          </span>
+        </div>
+        <div class="goal-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="getProgressPercent(goal)"></div>
+          </div>
+          <div class="progress-text">
+            {{ goal.currentProgress }} / {{ goal.targetBooks }} books
+          </div>
+        </div>
+        <div class="goal-dates">
+          <span>{{ formatDate(goal.startDate) }} - {{ formatDate(goal.endDate) }}</span>
+        </div>
+        <div class="goal-actions">
+          <button class="btn-update" (click)="updateProgress(goal)">
+            <span class="material-icons">refresh</span>
+            Update Progress
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- All Goals -->
+  <div class="goals-section">
+    <h2 class="section-title">All Goals</h2>
+    <div class="goals-list" *ngIf="goals.length > 0">
+      <div class="goal-item" *ngFor="let goal of goals">
+        <div class="goal-info">
+          <h3 class="goal-title">{{ getGoalTypeLabel(goal.goalType) }} Goal</h3>
+          <p class="goal-target">{{ goal.targetBooks }} books</p>
+          <p class="goal-period">{{ formatDate(goal.startDate) }} - {{ formatDate(goal.endDate) }}</p>
+        </div>
+        <div class="goal-progress-mini">
+          <span class="progress-num">{{ goal.currentProgress }}/{{ goal.targetBooks }}</span>
+          <div class="mini-progress-bar">
+            <div class="mini-progress-fill" [style.width.%]="getProgressPercent(goal)"></div>
+          </div>
+        </div>
+        <div class="goal-status-badge" [class.completed]="goal.isCompleted">
+          {{ goal.isCompleted ? 'Completed' : (goal.currentProgress >= goal.targetBooks ? 'Achieved' : 'Active') }}
+        </div>
+        <button class="btn-delete" (click)="deleteGoal(goal)">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="goals.length === 0 && !isLoading">
+      <span class="material-icons empty-icon">emoji_events</span>
+      <h3>No reading goals yet</h3>
+      <p>Create your first reading goal to start tracking your progress!</p>
+    </div>
+  </div>
+
+  <!-- Add Goal Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeModal()"></div>
+  <div class="modal" *ngIf="showAddModal">
+    <div class="modal-header">
+      <h2>Create Reading Goal</h2>
+      <button class="btn-close" (click)="closeModal()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Goal Type</label>
+        <select [(ngModel)]="newGoal.goalType" class="form-select">
+          <option *ngFor="let type of goalTypes" [value]="type.value">{{ type.label }}</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Target Books</label>
+        <input type="number" [(ngModel)]="newGoal.targetBooks" class="form-input" min="1" max="100">
+      </div>
+      <div class="form-group">
+        <label>Start Date</label>
+        <input type="date" [(ngModel)]="newGoal.startDate" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>End Date</label>
+        <input type="date" [(ngModel)]="newGoal.endDate" class="form-input">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+      <button class="btn-submit" (click)="createGoal()">Create Goal</button>
+    </div>
+  </div>
+
+</div>

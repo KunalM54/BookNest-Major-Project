@@ -192,9 +192,130 @@ html {
 
 .page-title {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-weight: 600;
+  color: #6366f1;
   margin: 0;
+  letter-spacing: -0.02em;
+}
+
+body.student-dark-mode .page-title {
+  color: #818cf8;
+}
+
+body.student-dark-mode .page-subtitle {
+  color: #94a3b8;
+}
+
+body.student-dark-mode .main-content,
+body.student-dark-mode .content-area,
+body.student-dark-mode .page-container {
+  background: transparent;
+  color: #e2e8f0;
+}
+
+body.student-dark-mode .page-title,
+body.student-dark-mode .book-title,
+body.student-dark-mode .section-title,
+body.student-dark-mode .stat-value,
+body.student-dark-mode .notice-title,
+body.student-dark-mode .reviewer-name {
+  color: #e2e8f0 !important;
+}
+
+body.student-dark-mode .page-subtitle,
+body.student-dark-mode .book-author,
+body.student-dark-mode .book-category,
+body.student-dark-mode .notice-preview,
+body.student-dark-mode .notice-date,
+body.student-dark-mode .review-count,
+body.student-dark-mode .review-date,
+body.student-dark-mode .description-text,
+body.student-dark-mode .meta-label,
+body.student-dark-mode .meta-item,
+body.student-dark-mode .empty-state p,
+body.student-dark-mode .tab-count {
+  color: #94a3b8 !important;
+}
+
+body.student-dark-mode .stat-card,
+body.student-dark-mode .book-card,
+body.student-dark-mode .wishlist-card,
+body.student-dark-mode .notice-card,
+body.student-dark-mode .activity-card,
+body.student-dark-mode .fine-card,
+body.student-dark-mode .summary-card,
+body.student-dark-mode .profile-card,
+body.student-dark-mode .details-card,
+body.student-dark-mode .password-card,
+body.student-dark-mode .reviews-card,
+body.student-dark-mode .rating-card,
+body.student-dark-mode .content-section,
+body.student-dark-mode .quick-actions-section,
+body.student-dark-mode .search-bar,
+body.student-dark-mode .sub-header,
+body.student-dark-mode .tabs-nav,
+body.student-dark-mode .empty-state,
+body.student-dark-mode .loading-state,
+body.student-dark-mode .meta-item,
+body.student-dark-mode .description-section,
+body.student-dark-mode .author-section,
+body.student-dark-mode .write-review-section,
+body.student-dark-mode .info-banner,
+body.student-dark-mode .fine-card,
+body.student-dark-mode .fine-info,
+body.student-dark-mode .fine-details {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.student-dark-mode .status-badge {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+body.student-dark-mode .filter-tabs {
+  background: #0f172a !important;
+}
+
+body.student-dark-mode .filter-tab.active,
+body.student-dark-mode .tab-btn.active {
+  background: #1e293b !important;
+  color: #c7d2fe !important;
+}
+
+body.student-dark-mode .form-input,
+body.student-dark-mode .form-select,
+body.student-dark-mode .password-input input,
+body.student-dark-mode .select,
+body.student-dark-mode .textarea,
+body.student-dark-mode .filter-select {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+body.student-dark-mode .form-input::placeholder,
+body.student-dark-mode .textarea::placeholder,
+body.student-dark-mode .search-input::placeholder {
+  color: #94a3b8;
+}
+
+body.student-dark-mode .page-btn,
+body.student-dark-mode .page-number,
+body.student-dark-mode .pagination-btn,
+body.student-dark-mode .expand-btn,
+body.student-dark-mode .btn-remove {
+  background: #1f2937 !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+body.student-dark-mode .page-number.active,
+body.student-dark-mode .pagination-btn.active,
+body.student-dark-mode .page-btn.active {
+  background: #6366f1 !important;
+  border-color: #6366f1 !important;
+  color: #ffffff !important;
 }
 
 /* Admin Cards (White Boxes) */
@@ -478,6 +599,165 @@ tbody tr:hover {
   color: #fff;
 }
 
+.page-number.active,
+.page-btn.active,
+.pagination-btn.active {
+  box-shadow: 0 8px 20px -12px rgba(37, 99, 235, 0.95);
+}
+
+button,
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-pay,
+.btn-view,
+.btn-remove,
+.request-btn,
+.cancel-btn,
+.page-btn,
+.page-number,
+.pagination-btn,
+.quick-action,
+.action-card,
+.filter-tab,
+.tab-btn,
+a.btn-primary,
+a.btn-secondary {
+  transition: all 0.2s ease-in-out !important;
+}
+
+.card,
+.stat-card,
+.book-card,
+.wishlist-card,
+.notice-card,
+.activity-card,
+.fine-card,
+.summary-card,
+.profile-card,
+.details-card,
+.password-card,
+.reviews-card,
+.rating-card,
+.content-section,
+.quick-actions-section {
+  transition: all 0.2s ease-in-out !important;
+}
+
+body.student-dark-mode {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+
+body.student-dark-mode .main-content,
+body.student-dark-mode .content-area,
+body.student-dark-mode .page-container {
+  background: transparent;
+  color: #e2e8f0;
+}
+
+body.student-dark-mode .page-title,
+body.student-dark-mode .book-title,
+body.student-dark-mode .section-title,
+body.student-dark-mode .stat-value,
+body.student-dark-mode .notice-title,
+body.student-dark-mode .reviewer-name {
+  color: #e2e8f0 !important;
+}
+
+body.student-dark-mode .page-subtitle,
+body.student-dark-mode .book-author,
+body.student-dark-mode .book-category,
+body.student-dark-mode .notice-preview,
+body.student-dark-mode .notice-date,
+body.student-dark-mode .review-count,
+body.student-dark-mode .review-date,
+body.student-dark-mode .description-text,
+body.student-dark-mode .meta-label,
+body.student-dark-mode .meta-item,
+body.student-dark-mode .empty-state p,
+body.student-dark-mode .tab-count {
+  color: #94a3b8 !important;
+}
+
+body.student-dark-mode .stat-card,
+body.student-dark-mode .book-card,
+body.student-dark-mode .wishlist-card,
+body.student-dark-mode .notice-card,
+body.student-dark-mode .activity-card,
+body.student-dark-mode .fine-card,
+body.student-dark-mode .summary-card,
+body.student-dark-mode .profile-card,
+body.student-dark-mode .details-card,
+body.student-dark-mode .password-card,
+body.student-dark-mode .reviews-card,
+body.student-dark-mode .rating-card,
+body.student-dark-mode .content-section,
+body.student-dark-mode .quick-actions-section,
+body.student-dark-mode .search-bar,
+body.student-dark-mode .sub-header,
+body.student-dark-mode .tabs-nav,
+body.student-dark-mode .empty-state,
+body.student-dark-mode .loading-state,
+body.student-dark-mode .meta-item,
+body.student-dark-mode .description-section,
+body.student-dark-mode .author-section,
+body.student-dark-mode .write-review-section,
+body.student-dark-mode .info-banner {
+  background: #111827 !important;
+  border-color: #334155 !important;
+}
+
+body.student-dark-mode .status-badge {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+body.student-dark-mode .filter-tabs {
+  background: #0f172a !important;
+}
+
+body.student-dark-mode .filter-tab.active,
+body.student-dark-mode .tab-btn.active {
+  background: #1e293b !important;
+  color: #c7d2fe !important;
+}
+
+body.student-dark-mode .form-input,
+body.student-dark-mode .form-select,
+body.student-dark-mode .password-input input,
+body.student-dark-mode .select,
+body.student-dark-mode .textarea,
+body.student-dark-mode .filter-select {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+body.student-dark-mode .form-input::placeholder,
+body.student-dark-mode .textarea::placeholder,
+body.student-dark-mode .search-input::placeholder {
+  color: #94a3b8;
+}
+
+body.student-dark-mode .page-btn,
+body.student-dark-mode .page-number,
+body.student-dark-mode .pagination-btn,
+body.student-dark-mode .expand-btn,
+body.student-dark-mode .btn-remove {
+  background: #1f2937 !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+body.student-dark-mode .page-number.active,
+body.student-dark-mode .pagination-btn.active,
+body.student-dark-mode .page-btn.active {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
 @media (max-width: 768px) {
   .admin-shell .content-area .admin-toolbar-stack {
     padding-bottom: 10px;
@@ -495,4 +775,222 @@ tbody tr:hover {
   .pagination-controls {
     justify-content: flex-start;
   }
+}
+
+/* ===== UNIFIED HEADING STRUCTURE ===== */
+.page-header {
+  margin-bottom: 2.5rem;
+}
+
+.page-header .header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #6366f1;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.page-title .material-icons {
+  font-size: 1.75rem;
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ===== GLOBAL TRANSITIONS ===== */
+.page-number.active,
+.page-btn.active,
+.pagination-btn.active {
+  box-shadow: 0 8px 20px -12px rgba(37, 99, 235, 0.95);
+}
+
+button,
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-pay,
+.btn-view,
+.btn-remove,
+.request-btn,
+.cancel-btn,
+.page-btn,
+.page-number,
+.pagination-btn,
+.quick-action,
+.action-card,
+.filter-tab,
+.tab-btn,
+a.btn-primary,
+a.btn-secondary,
+.card,
+.stat-card,
+.book-card,
+.wishlist-card,
+.notice-card,
+.activity-card,
+.fine-card,
+.summary-card,
+.profile-card,
+.details-card,
+.password-card,
+.reviews-card,
+.rating-card,
+.content-section,
+.quick-actions-section {
+  transition: all 0.3s ease-out;
+}
+
+/* ===== DARK THEME LAYERED GRAY APPROACH ===== */
+body.student-dark-mode {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+body.student-dark-mode .layout-container,
+body.student-dark-mode .main-content,
+body.student-dark-mode .content-area,
+body.student-dark-mode .page-container {
+  background: #0f172a;
+}
+
+body.student-dark-mode .page-header {
+  margin-bottom: 2.5rem;
+}
+
+body.student-dark-mode .page-header .header-left {
+  gap: 8px;
+}
+
+body.student-dark-mode .page-title {
+  color: #818cf8;
+}
+
+body.student-dark-mode .page-title .material-icons {
+  color: #818cf8;
+}
+
+body.student-dark-mode .page-subtitle {
+  color: #94a3b8;
+}
+
+body.student-dark-mode .card,
+body.student-dark-mode .stat-card,
+body.student-dark-mode .book-card,
+body.student-dark-mode .wishlist-card,
+body.student-dark-mode .notice-card,
+body.student-dark-mode .activity-card,
+body.student-dark-mode .fine-card,
+body.student-dark-mode .summary-card,
+body.student-dark-mode .profile-card,
+body.student-dark-mode .details-card,
+body.student-dark-mode .password-card,
+body.student-dark-mode .reviews-card,
+body.student-dark-mode .rating-card,
+body.student-dark-mode .content-section,
+body.student-dark-mode .quick-actions-section,
+body.student-dark-mode .search-bar,
+body.student-dark-mode .sub-header,
+body.student-dark-mode .tabs-nav,
+body.student-dark-mode .empty-state,
+body.student-dark-mode .loading-state,
+body.student-dark-mode .meta-item,
+body.student-dark-mode .description-section,
+body.student-dark-mode .author-section,
+body.student-dark-mode .write-review-section,
+body.student-dark-mode .info-banner {
+  background: #1e293b;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
+
+body.student-dark-mode .status-badge {
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+body.student-dark-mode .filter-tabs {
+  background: #0f172a;
+}
+
+body.student-dark-mode .filter-tab.active,
+body.student-dark-mode .tab-btn.active {
+  background: #1e293b;
+  color: #c7d2fe;
+}
+
+body.student-dark-mode .form-input,
+body.student-dark-mode .form-select,
+body.student-dark-mode .password-input input,
+body.student-dark-mode .select,
+body.student-dark-mode .textarea,
+body.student-dark-mode .filter-select {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: #334155;
+}
+
+body.student-dark-mode .form-input::placeholder,
+body.student-dark-mode .textarea::placeholder,
+body.student-dark-mode .search-input::placeholder {
+  color: #94a3b8;
+}
+
+body.student-dark-mode .page-btn,
+body.student-dark-mode .page-number,
+body.student-dark-mode .pagination-btn,
+body.student-dark-mode .expand-btn,
+body.student-dark-mode .btn-remove {
+  background: #1e2937;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+body.student-dark-mode .page-number.active,
+body.student-dark-mode .pagination-btn.active,
+body.student-dark-mode .page-btn.active {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #ffffff;
+}
+
+body.student-dark-mode .btn-primary,
+body.student-dark-mode .btn-pay,
+body.student-dark-mode .btn-borrow,
+body.student-dark-mode .request-btn {
+  background: #6366f1;
+  border-color: #6366f1;
+}
+
+body.student-dark-mode .btn-primary:hover,
+body.student-dark-mode .btn-pay:hover,
+body.student-dark-mode .btn-borrow:hover,
+body.student-dark-mode .request-btn:hover {
+  background: #4f46e5;
+  border-color: #4f46e5;
+}
+
+body.student-dark-mode .btn-secondary,
+body.student-dark-mode .btn-view {
+  background: #1e293b;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+body.student-dark-mode .btn-secondary:hover,
+body.student-dark-mode .btn-view:hover {
+  background: #334155;
+  border-color: #475569;
 }

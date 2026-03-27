@@ -9,6 +9,16 @@
       </h1>
       <p class="page-subtitle">View and manage student accounts</p>
     </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportCsv()" title="Export all as CSV">
+        <span class="material-icons">description</span>
+        CSV
+      </button>
+      <button class="btn-export" (click)="exportPdf()" title="Export all as PDF">
+        <span class="material-icons">picture_as_pdf</span>
+        PDF
+      </button>
+    </div>
   </div>
 
   <!-- Sticky Sub-header with Search & Filter -->

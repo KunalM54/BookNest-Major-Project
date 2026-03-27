@@ -271,18 +271,18 @@
 }
 
 .status-badge.success {
-  background: #D1FAE5;
-  color: #047857;
+  background: #DCFCE7;
+  color: #166534;
 }
 
 .status-badge.warning {
-  background: #FEF3C7;
-  color: #B45309;
+  background: #FEE2E2;
+  color: #991B1B;
 }
 
 .status-badge.danger {
   background: #FEE2E2;
-  color: #DC2626;
+  color: #991B1B;
 }
 
 /* ===== EMPTY STATE ===== */

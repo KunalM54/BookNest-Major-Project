@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { UserService, Student } from '../../../services/user';
 import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 import { scrollToTop } from '../../../utils/scroll-to-top';
+import { HttpClient } from '@angular/common/http';
+import { SnackbarService } from '../../../services/snackbar';
 
 @Component({
   selector: 'app-manage-students',
@@ -30,7 +32,7 @@ export class ManageStudentsComponent implements OnInit {
   pageSize = 10;
   totalPages = 1;
 
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService, private http: HttpClient, private snackbar: SnackbarService) { }
 
   ngOnInit() {
     this.refreshStudents(true);
@@ -232,5 +234,37 @@ export class ManageStudentsComponent implements OnInit {
 
   viewStudent(student: Student) {
     console.log(student);
+  }
+
+  private readonly apiUrl = 'http://localhost:8080/api/borrow';
+
+  exportCsv() {
+    this.http.get(`${this.apiUrl}/export`, { params: { format: 'csv' }, responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `all_students_history.csv`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.snackbar.show('CSV exported successfully');
+      },
+      error: () => this.snackbar.show('Failed to export CSV')
+    });
+  }
+
+  exportPdf() {
+    this.http.get(`${this.apiUrl}/export`, { params: { format: 'pdf' }, responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `all_students_history.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.snackbar.show('PDF exported successfully');
+      },
+      error: () => this.snackbar.show('Failed to export PDF')
+    });
   }
 }

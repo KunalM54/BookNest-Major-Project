@@ -41,59 +41,58 @@
     <p>You have no pending fines. Keep returning books on time!</p>
   </div>
 
-  <div *ngIf="!isLoading && fines.length > 0" class="fines-list">
-    <div class="fine-card" *ngFor="let fine of fines">
-      <div class="fine-info">
-        <div class="fine-book">
-          <span class="material-icons">menu_book</span>
-          <div>
-            <h4>{{ fine.borrow?.book?.title || 'Book' }}</h4>
-            <p>{{ fine.borrow?.book?.author || 'Unknown Author' }}</p>
-          </div>
-        </div>
-        <div class="fine-details">
-          <div class="detail-item">
-            <span class="label">Days Overdue</span>
-            <span class="value">{{ fine.daysOverdue }} days</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">Fine/Day</span>
-            <span class="value">₹{{ fine.finePerDay }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">Total Fine</span>
-            <span class="value amount">₹{{ fine.fineAmount }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">Paid</span>
-            <span class="value">₹{{ fine.paidAmount || 0 }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="label">Outstanding</span>
-            <span class="value amount">₹{{ getOutstanding(fine) }}</span>
-          </div>
-        </div>
-        <div class="fine-date">
-          <span class="label">Created</span>
-          <span class="value">{{ fine.createdAt | date: 'MMM dd, yyyy' }}</span>
-        </div>
-      </div>
-      <div class="fine-actions">
-        <span class="status-badge" [class]="getStatusClass(fine.status)">
-          {{ fine.status }}
-        </span>
-        <button 
-          *ngIf="fine.status === 'PENDING'" 
-          class="btn-pay"
-          [disabled]="processingPayment === fine.id"
-          (click)="payFine(fine.id)">
-          <span class="material-icons">{{ processingPayment === fine.id ? 'hourglass_top' : 'payment' }}</span>
-          {{ processingPayment === fine.id ? 'Processing...' : ('Pay ₹' + getOutstanding(fine)) }}
-        </button>
-        <span *ngIf="fine.status === 'PAID'" class="paid-date">
-          Paid on {{ fine.paidAt | date: 'MMM dd, yyyy' }}
-        </span>
-      </div>
-    </div>
+  <div *ngIf="!isLoading && fines.length > 0" class="table-wrapper">
+    <table class="fines-table">
+      <thead>
+        <tr>
+          <th>Book</th>
+          <th>Days Overdue</th>
+          <th>Fine/Day</th>
+          <th>Total Fine</th>
+          <th>Paid</th>
+          <th>Outstanding</th>
+          <th>Created</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let fine of fines">
+          <td class="book-cell">
+            <div class="book-info">
+              <span class="material-icons book-icon">menu_book</span>
+              <div class="book-details">
+                <span class="book-title">{{ fine.borrow?.book?.title || 'Book' }}</span>
+                <span class="book-author">{{ fine.borrow?.book?.author || 'Unknown Author' }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ fine.daysOverdue }} days</td>
+          <td>₹{{ fine.finePerDay }}</td>
+          <td class="amount">₹{{ fine.fineAmount }}</td>
+          <td>₹{{ fine.paidAmount || 0 }}</td>
+          <td>
+            <span class="amount outstanding" *ngIf="hasOutstanding(fine)">₹{{ getOutstanding(fine) }}</span>
+            <span class="amount settled" *ngIf="!hasOutstanding(fine)">₹0</span>
+          </td>
+          <td>{{ fine.createdAt | date: 'MMM dd, yyyy' }}</td>
+          <td class="action-cell">
+            <button
+              *ngIf="hasOutstanding(fine)"
+              class="btn-pay"
+              [disabled]="processingPayment === fine.id"
+              (click)="payFine(fine.id)">
+              <span class="material-icons">{{ processingPayment === fine.id ? 'hourglass_top' : 'payment' }}</span>
+              {{ processingPayment === fine.id ? 'Processing...' : 'Pay' }}
+            </button>
+            <span *ngIf="!hasOutstanding(fine)" class="status-badge paid">
+              Paid
+            </span>
+            <span *ngIf="!hasOutstanding(fine) && fine.paidAt" class="paid-date">
+              {{ fine.paidAt | date: 'MMM dd, yyyy' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>

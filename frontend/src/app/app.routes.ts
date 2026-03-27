@@ -28,6 +28,7 @@ import { MyStatsComponent } from './pages/student/my-stats/my-stats';
 import { BookDetailComponent } from './pages/student/book-detail/book-detail';
 import { WishlistComponent } from './pages/student/wishlist/wishlist';
 import { FinesComponent } from './pages/student/fines/fines';
+import { ReadingGoalsComponent } from './pages/student/reading-goals/reading-goals';
 
 
 // ================= ADMIN PAGES =================
@@ -78,7 +79,8 @@ export const routes: Routes = [
       { path: 'activity', component: MyActivityComponent },
       { path: 'my-stats', component: MyStatsComponent },
       { path: 'wishlist', component: WishlistComponent },
-      { path: 'fines', component: FinesComponent }
+      { path: 'fines', component: FinesComponent },
+      { path: 'reading-goals', component: ReadingGoalsComponent }
     ]
   },
 

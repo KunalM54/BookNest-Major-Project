@@ -80,4 +80,10 @@ public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
     @Query(value = "SELECT CAST(b.request_date AS DATE), COUNT(*) FROM borrows b WHERE b.status IN ('APPROVED', 'RETURNED', 'OVERDUE') AND b.request_date >= :startDate GROUP BY CAST(b.request_date AS DATE) ORDER BY CAST(b.request_date AS DATE)", nativeQuery = true)
     List<Object[]> findIssuedTrend(LocalDate startDate);
+
+    @Query("SELECT b FROM Borrow b WHERE b.status = :status AND b.dueDate BETWEEN :startDate AND :endDate")
+    List<Borrow> findByStatusAndDueDateBetween(Borrow.BorrowStatus status, LocalDate startDate, LocalDate endDate);
+
+    @Query("SELECT b FROM Borrow b WHERE b.status = :status AND b.dueDate < :dueDate")
+    List<Borrow> findByStatusAndDueDateBefore(Borrow.BorrowStatus status, LocalDate dueDate);
 }

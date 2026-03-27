@@ -116,7 +116,7 @@
               <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
             </div>
 
-            <button type="button" class="btn-primary" (click)="updateProfile()" [disabled]="isLoading">
+            <button type="button" class="btn-primary save-btn" (click)="updateProfile()" [disabled]="isLoading">
               <span class="material-icons">save</span>
               {{ isLoading ? 'Saving...' : 'Save Changes' }}
             </button>

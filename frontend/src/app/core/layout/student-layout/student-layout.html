@@ -1,4 +1,4 @@
-<div class="layout-container" [class.sidebar-collapsed]="sidebarCollapsed">
+<div class="layout-container" [class.sidebar-collapsed]="sidebarCollapsed" [class.dark-theme]="isDarkTheme">
 
   <!-- TOP NAVBAR -->
   <header class="top-navbar">
@@ -77,6 +77,12 @@
         <a routerLink="/student/my-stats" routerLinkActive="active-link">
           <span class="material-icons">insights</span>
           <span>My Stats</span>
+        </a>
+      </li>
+      <li>
+        <a routerLink="/student/reading-goals" routerLinkActive="active-link">
+          <span class="material-icons">emoji_events</span>
+          <span>Reading Goals</span>
         </a>
       </li>
 

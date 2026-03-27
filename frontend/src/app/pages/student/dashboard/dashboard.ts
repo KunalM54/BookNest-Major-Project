@@ -91,7 +91,7 @@ export class DashboardComponent implements OnInit {
         return 'Overdue';
       case 'APPROVED':
       case 'BORROWED':
-        return 'Safe';
+        return 'On Time';
       case 'PENDING':
         return 'Pending';
       case 'RETURNED_ON_TIME':
@@ -99,7 +99,7 @@ export class DashboardComponent implements OnInit {
       case 'RETURNED':
         return 'Returned';
       default:
-        return 'Safe';
+        return 'On Time';
     }
   }
 }

@@ -77,6 +77,31 @@ export class NoticesStudent implements OnInit {
     return this.getNoticePriority(notice) === 'HIGH';
   }
 
+  getNoticeThemeClass(notice: Pick<Notice, 'title' | 'priority' | 'isImportant'>): string {
+    const title = (notice.title || '').toLowerCase();
+
+    if (/(emergency|closed|closure|urgent|shutdown)/i.test(title)) {
+      return 'notice-alert';
+    }
+
+    if (/(event|events|lecture|lectures|seminar|workshop|talk)/i.test(title)) {
+      return 'notice-event';
+    }
+
+    if (/(new arrival|arrivals|info|information|announcement|update)/i.test(title)) {
+      return 'notice-info';
+    }
+
+    return this.isHighPriority(notice) ? 'notice-alert' : 'notice-info';
+  }
+
+  getNoticeIcon(notice: Pick<Notice, 'title' | 'priority' | 'isImportant'>): string {
+    const theme = this.getNoticeThemeClass(notice);
+    if (theme === 'notice-alert') return 'priority_high';
+    if (theme === 'notice-event') return 'event';
+    return 'info';
+  }
+
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);

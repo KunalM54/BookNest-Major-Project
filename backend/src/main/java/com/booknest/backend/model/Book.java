@@ -45,6 +45,9 @@ public class Book {
     @Column(name = "price")
     private Double price;
 
+    @Column(name = "book_condition")
+    private String bookCondition = "NEW";
+
     @PrePersist
     protected void onCreate() {
         this.addedDate = LocalDate.now();
@@ -160,5 +163,13 @@ public class Book {
 
     public void setPrice(Double price) {
         this.price = price;
+    }
+
+    public String getBookCondition() {
+        return bookCondition;
+    }
+
+    public void setBookCondition(String bookCondition) {
+        this.bookCondition = bookCondition;
     }
 }

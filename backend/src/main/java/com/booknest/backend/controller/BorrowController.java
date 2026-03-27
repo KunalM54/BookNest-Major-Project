@@ -4,6 +4,8 @@ import com.booknest.backend.dto.BorrowDTO;
 import com.booknest.backend.model.Borrow;
 import com.booknest.backend.service.BorrowService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -195,5 +197,57 @@ public class BorrowController {
         dto.setActionDate(borrow.getActionDate());
         dto.setStatus(borrow.getDisplayStatus());
         return dto;
+    }
+
+    // Export borrow history as CSV or PDF
+    @GetMapping("/history/export")
+    public ResponseEntity<byte[]> exportHistory(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "csv") String format) {
+        try {
+            byte[] exportData = borrowService.exportHistory(userId, format);
+            
+            String filename = "borrow_history_" + userId + (format.equalsIgnoreCase("pdf") ? ".pdf" : ".csv");
+            MediaType mediaType = format.equalsIgnoreCase("pdf") 
+                ? MediaType.APPLICATION_PDF 
+                : MediaType.parseMediaType("text/csv");
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(mediaType)
+                    .body(exportData);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // Admin: Export all borrow history or by student
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> adminExportHistory(
+            @RequestParam(required = false) Long studentId,
+            @RequestParam(defaultValue = "csv") String format) {
+        try {
+            byte[] exportData;
+            String filename;
+            
+            if (studentId != null) {
+                exportData = borrowService.exportHistory(studentId, format);
+                filename = "borrow_history_student_" + studentId + (format.equalsIgnoreCase("pdf") ? ".pdf" : ".csv");
+            } else {
+                exportData = borrowService.exportAllHistory(format);
+                filename = "all_borrow_history" + (format.equalsIgnoreCase("pdf") ? ".pdf" : ".csv");
+            }
+            
+            MediaType mediaType = format.equalsIgnoreCase("pdf") 
+                ? MediaType.APPLICATION_PDF 
+                : MediaType.parseMediaType("text/csv");
+            
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                    .contentType(mediaType)
+                    .body(exportData);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

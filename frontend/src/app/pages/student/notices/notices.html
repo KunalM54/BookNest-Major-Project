@@ -17,13 +17,13 @@
   <div class="notices-list" *ngIf="!isLoading && notices.length > 0">
     <div 
       class="notice-card" 
-      [class.important]="isHighPriority(notice)"
+      [ngClass]="getNoticeThemeClass(notice)"
       *ngFor="let notice of displayedNotices">
       
       <!-- Notice Header -->
       <div class="notice-header" (click)="toggleNotice(notice.id)">
-        <div class="notice-icon" [class.important]="isHighPriority(notice)">
-          <span class="material-icons">{{ isHighPriority(notice) ? 'priority_high' : 'info' }}</span>
+        <div class="notice-icon" [ngClass]="getNoticeThemeClass(notice)">
+          <span class="material-icons">{{ getNoticeIcon(notice) }}</span>
         </div>
         
         <div class="notice-content">

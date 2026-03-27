@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { WishlistService, WishlistItem } from '../../../services/wishlist';
 import { AuthService } from '../../../services/auth';
+import { BorrowService } from '../../../services/borrow';
+import { SnackbarService } from '../../../services/snackbar';
 
 @Component({
   selector: 'app-wishlist',
@@ -15,11 +17,14 @@ export class WishlistComponent implements OnInit {
   wishlistItems: WishlistItem[] = [];
   isLoading = false;
   errorMessage = '';
+  processingBorrowId: number | null = null;
 
   constructor(
     private wishlistService: WishlistService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private borrowService: BorrowService,
+    private snackbar: SnackbarService
   ) { }
 
   ngOnInit() {
@@ -64,6 +69,30 @@ export class WishlistComponent implements OnInit {
 
   viewBook(bookId: number) {
     this.router.navigate(['/books', bookId]);
+  }
+
+  borrowNow(item: WishlistItem) {
+    const userId = this.authService.getUserId();
+    if (!userId || item.availableCopies <= 0) {
+      return;
+    }
+
+    this.processingBorrowId = item.id;
+    this.borrowService.createRequest(userId, item.id).subscribe({
+      next: (res) => {
+        this.processingBorrowId = null;
+        if (res?.success) {
+          item.availableCopies = Math.max(0, (item.availableCopies || 0) - 1);
+          this.snackbar.show(res.message || `Borrow request sent for "${item.title}"`);
+        } else {
+          this.snackbar.show(res?.message || 'Failed to request book');
+        }
+      },
+      error: (err) => {
+        this.processingBorrowId = null;
+        this.snackbar.show(err?.error?.message || 'Failed to request book');
+      }
+    });
   }
 
   getImageSource(item: WishlistItem): string {

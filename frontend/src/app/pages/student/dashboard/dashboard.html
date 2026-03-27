@@ -62,7 +62,7 @@
             </div>
           </div>
           <div class="book-status">
-            <span class="status-badge" [class.warning]="book.status === 'Overdue'" [class.danger]="book.status === 'Overdue'" [class.success]="book.status === 'Safe' || book.status === 'Borrowed'">
+            <span class="status-badge" [class.danger]="book.status === 'Overdue'" [class.success]="book.status === 'On Time'">
               {{ book.status }}
             </span>
           </div>

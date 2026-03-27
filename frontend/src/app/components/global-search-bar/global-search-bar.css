@@ -4,12 +4,12 @@
   align-items: center;
   width: 320px;
   max-width: 400px;
-  height: 44px;
+  height: 48px;
   background: #FFFFFF;
   border: 1px solid #D1D5DB;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  transition: all 0.2s ease-in-out;
   flex-shrink: 0;
 }
 
@@ -19,7 +19,7 @@
 
 .global-search-bar:focus-within {
   border-color: #2563EB;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18), 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
 .search-icon {

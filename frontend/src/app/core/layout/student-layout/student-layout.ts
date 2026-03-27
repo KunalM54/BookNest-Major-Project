@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../services/auth';
@@ -10,12 +10,15 @@ import { AuthService } from '../../../services/auth';
   templateUrl: './student-layout.html',
   styleUrls: ['./student-layout.css', './student-layout-modal.css']
 })
-export class StudentLayoutComponent implements OnInit {
+export class StudentLayoutComponent implements OnInit, OnDestroy {
   showLogoutModal = false;
   sidebarCollapsed = true;
   studentName: string = '';
   studentId: string = '';
   studentInitials: string = '';
+  isDarkTheme = false;
+
+  private readonly themeStorageKey = 'booknest_student_theme';
 
   constructor(
     private authService: AuthService,
@@ -24,6 +27,11 @@ export class StudentLayoutComponent implements OnInit {
 
   ngOnInit() {
     this.loadStudentInfo();
+    this.initializeTheme();
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('student-dark-mode');
   }
 
   loadStudentInfo() {
@@ -48,6 +56,12 @@ export class StudentLayoutComponent implements OnInit {
     this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
+  toggleTheme() {
+    this.isDarkTheme = !this.isDarkTheme;
+    localStorage.setItem(this.themeStorageKey, this.isDarkTheme ? 'dark' : 'light');
+    this.applyThemePreference();
+  }
+
   openLogoutModal() {
     this.showLogoutModal = true;
   }
@@ -60,5 +74,19 @@ export class StudentLayoutComponent implements OnInit {
     this.authService.logout();
     this.router.navigate(['/login']);
     this.showLogoutModal = false;
+  }
+
+  private initializeTheme() {
+    const storedTheme = localStorage.getItem(this.themeStorageKey);
+    if (storedTheme) {
+      this.isDarkTheme = storedTheme === 'dark';
+    } else {
+      this.isDarkTheme = !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+    }
+    this.applyThemePreference();
+  }
+
+  private applyThemePreference() {
+    document.body.classList.toggle('student-dark-mode', this.isDarkTheme);
   }
 }

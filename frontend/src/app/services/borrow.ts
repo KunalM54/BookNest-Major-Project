@@ -130,4 +130,52 @@ export class BorrowService {
       params: { studentId: studentId.toString(), bookId: bookId.toString() }
     });
   }
+
+  // Export history as CSV
+  exportHistoryCsv(userId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/history/export`, {
+      params: { userId: userId.toString(), format: 'csv' },
+      responseType: 'blob'
+    });
+  }
+
+  // Export history as PDF
+  exportHistoryPdf(userId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/history/export`, {
+      params: { userId: userId.toString(), format: 'pdf' },
+      responseType: 'blob'
+    });
+  }
+
+  // Admin: Export all borrow history as CSV
+  exportAllHistoryCsv(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, {
+      params: { format: 'csv' },
+      responseType: 'blob'
+    });
+  }
+
+  // Admin: Export all borrow history as PDF
+  exportAllHistoryPdf(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, {
+      params: { format: 'pdf' },
+      responseType: 'blob'
+    });
+  }
+
+  // Admin: Export specific student's history as CSV
+  exportStudentHistoryCsv(studentId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, {
+      params: { studentId: studentId.toString(), format: 'csv' },
+      responseType: 'blob'
+    });
+  }
+
+  // Admin: Export specific student's history as PDF
+  exportStudentHistoryPdf(studentId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, {
+      params: { studentId: studentId.toString(), format: 'pdf' },
+      responseType: 'blob'
+    });
+  }
 }

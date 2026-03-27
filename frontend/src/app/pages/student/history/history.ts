@@ -5,6 +5,7 @@ import { AuthService } from '../../../services/auth';
 import { BorrowService } from '../../../services/borrow';
 import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 import { scrollToTop } from '../../../utils/scroll-to-top';
+import { SnackbarService } from '../../../services/snackbar';
 
 @Component({
   selector: 'app-history',
@@ -29,7 +30,8 @@ export class HistoryComponent implements OnInit {
 
   constructor(
     private borrowService: BorrowService,
-    private authService: AuthService
+    private authService: AuthService,
+    private snackbar: SnackbarService
   ) { }
 
   ngOnInit() {
@@ -149,5 +151,45 @@ export class HistoryComponent implements OnInit {
 
   get paginationEnd(): number {
     return Math.min(this.currentPage * this.pageSize, this.filteredHistory.length);
+  }
+
+  exportCsv() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+
+    this.borrowService.exportHistoryCsv(userId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `borrow_history_${userId}.csv`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.snackbar.show('CSV exported successfully');
+      },
+      error: () => {
+        this.snackbar.show('Failed to export CSV');
+      }
+    });
+  }
+
+  exportPdf() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+
+    this.borrowService.exportHistoryPdf(userId).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `borrow_history_${userId}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.snackbar.show('PDF exported successfully');
+      },
+      error: () => {
+        this.snackbar.show('Failed to export PDF');
+      }
+    });
   }
 }

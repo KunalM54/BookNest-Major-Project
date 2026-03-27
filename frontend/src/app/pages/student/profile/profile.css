@@ -7,22 +7,30 @@
 
 /* ===== PAGE HEADER ===== */
 .page-header {
-  margin-bottom: 24px;
+  margin-bottom: 2.5rem;
 }
 
 .page-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #1E293B;
+  font-size: 2rem;
+  font-weight: 600;
+  color: #6366f1;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .page-title .material-icons {
-  color: #667EEA;
-  font-size: 28px;
+  color: #6366f1;
+  font-size: 1.75rem;
+}
+
+.page-subtitle {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 400;
 }
 
 /* ===== TABS NAVIGATION ===== */
@@ -86,6 +94,8 @@
   grid-template-columns: 280px 1fr;
   gap: 24px;
   align-items: start;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 /* ===== PROFILE CARD ===== */
@@ -94,8 +104,8 @@
   border-radius: 20px;
   padding: 32px 24px;
   text-align: center;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid #F1F5F9;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
 }
 
 .avatar-section {
@@ -170,8 +180,10 @@
   background: white;
   border-radius: 20px;
   padding: 28px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid #F1F5F9;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .details-card h3 {
@@ -180,12 +192,12 @@
   gap: 10px;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1E293B;
+  color: #1e293b;
   margin: 0 0 24px 0;
 }
 
 .details-card h3 .material-icons {
-  color: #667EEA;
+  color: #6366f1;
   font-size: 22px;
 }
 
@@ -229,8 +241,12 @@
 
 .form-input:focus,
 .form-select:focus {
-  border-color: #667EEA;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+}
+
+.phone-input-group:focus-within .phone-prefix {
+  border-color: #4f46e5;
 }
 
 .form-input[readonly] {
@@ -304,6 +320,12 @@
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 8px;
+}
+
+.btn-primary.save-btn {
+  width: auto;
+  min-width: 180px;
+  align-self: flex-end;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -392,8 +414,8 @@
 }
 
 .password-input input:focus {
-  border-color: #667EEA;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
 }
 
 .toggle-password {

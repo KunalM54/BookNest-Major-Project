@@ -56,8 +56,17 @@
             <span class="material-icons">visibility</span>
             View
           </button>
+          <button
+            *ngIf="item.availableCopies > 0"
+            class="btn-borrow"
+            [disabled]="processingBorrowId === item.id"
+            (click)="borrowNow(item)"
+          >
+            <span class="material-icons">menu_book</span>
+            {{ processingBorrowId === item.id ? 'Requesting...' : 'Borrow Now' }}
+          </button>
           <button class="btn-remove" (click)="removeFromWishlist(item.id)">
-            <span class="material-icons">delete</span>
+            <span class="material-icons">delete_outline</span>
             Remove
           </button>
         </div>
