@@ -10,11 +10,13 @@ import { Review, ReviewService } from '../../../services/review';
 import { SnackbarService } from '../../../services/snackbar';
 import { WishlistService } from '../../../services/wishlist';
 import { AvailabilityAlertService } from '../../../services/availability-alert';
+import { DemoPaymentService } from '../../../services/demo-payment';
+import { DemoPaymentModalComponent } from '../../../components/demo-payment-modal/demo-payment-modal';
 
 @Component({
   selector: 'app-book-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, DemoPaymentModalComponent],
   templateUrl: './book-detail.html',
   styleUrls: ['./book-detail.css'],
 })
@@ -46,18 +48,25 @@ export class BookDetailComponent implements OnInit, OnDestroy {
   reviewError = '';
   descriptionTruncated = true;
 
+  showPaymentModal = false;
+  paymentAmount = 0;
+  paymentDescription = '';
+  currentOrderId = '';
+  currentOrderDbId = 0;
+
   private destroy$ = new Subject<void>();
 
   constructor(
+    public authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService,
     private bookService: BookService,
     private borrowService: BorrowService,
     private reviewService: ReviewService,
     private snackbar: SnackbarService,
     private wishlistService: WishlistService,
-    private alertService: AvailabilityAlertService
+    private alertService: AvailabilityAlertService,
+    private demoPaymentService: DemoPaymentService
   ) { }
 
   ngOnInit(): void {
@@ -342,10 +351,62 @@ export class BookDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const confirmPurchase = confirm(`Buy "${this.book.title}" for ₹${this.book.price}?`);
-    if (confirmPurchase) {
-      this.snackbar.show('Purchase successful! Thank you for buying.');
-    }
+    this.loading = true;
+    this.demoPaymentService.createBookPurchaseOrder(userId, this.book.id).subscribe({
+      next: (res) => {
+        this.loading = false;
+        if (res.success && res.orderId) {
+          this.currentOrderId = res.orderId;
+          this.currentOrderDbId = res.orderDbId || 0;
+          this.paymentAmount = res.amount || this.book!.price!;
+          this.paymentDescription = res.bookTitle || this.book!.title;
+          this.showPaymentModal = true;
+        } else {
+          this.snackbar.show(res.message || 'Failed to initiate payment');
+        }
+      },
+      error: (err) => {
+        this.loading = false;
+        this.snackbar.show(err?.error?.message || 'Failed to initiate payment');
+      }
+    });
+  }
+
+  get paymentBookTitle(): string {
+    return this.book?.title || '';
+  }
+
+  get paymentBookAuthor(): string {
+    return this.book?.author || '';
+  }
+
+  get paymentOrderId(): number {
+    return this.currentOrderDbId;
+  }
+
+  onPaymentComplete() {
+    this.loading = true;
+    this.demoPaymentService.verifyBookPayment(this.currentOrderId).subscribe({
+      next: (res) => {
+        this.loading = false;
+        this.showPaymentModal = false;
+        if (res.success) {
+          this.snackbar.show('Payment successful! Please collect your book from the library with the transaction receipt.');
+          this.router.navigate(['/student/my-purchases']);
+        } else {
+          this.snackbar.show(res.message || 'Payment verification failed');
+        }
+      },
+      error: () => {
+        this.loading = false;
+        this.showPaymentModal = false;
+        this.snackbar.show('Payment verification failed');
+      }
+    });
+  }
+
+  onPaymentModalClose() {
+    this.showPaymentModal = false;
   }
 
   toggleWishlist() {

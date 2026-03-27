@@ -29,6 +29,7 @@ import { BookDetailComponent } from './pages/student/book-detail/book-detail';
 import { WishlistComponent } from './pages/student/wishlist/wishlist';
 import { FinesComponent } from './pages/student/fines/fines';
 import { ReadingGoalsComponent } from './pages/student/reading-goals/reading-goals';
+import { MyPurchasesComponent } from './pages/student/my-purchases/my-purchases';
 
 
 // ================= ADMIN PAGES =================
@@ -41,6 +42,7 @@ import { NoticesComponent } from './pages/admin/notices/notices';
 import { ProfileComponent as AdminProfile } from './pages/admin/profile/profile'; // Alias used
 import { ChangePassword } from './pages/admin/change-password/change-password';
 import { ManageFinesComponent } from './pages/admin/manage-fines/manage-fines';
+import { ManageOrdersComponent } from './pages/admin/manage-orders/manage-orders';
 
 export const routes: Routes = [
   // Public Routes
@@ -71,6 +73,7 @@ export const routes: Routes = [
       { path: 'books/:id', component: BookDetailComponent },
       { path: 'my-books', component: MyBooksComponent },
       { path: 'my-library', component: MyLibraryComponent },
+      { path: 'my-purchases', component: MyPurchasesComponent },
       { path: 'history', component: HistoryComponent },
       { path: 'profile', component: StudentProfile },
       { path: 'change-password', component: ChangePasswordStudent },
@@ -97,6 +100,7 @@ export const routes: Routes = [
       { path: 'students', component: ManageStudentsComponent },
       { path: 'requests', component: BorrowRequestsComponent },
       { path: 'fines', component: ManageFinesComponent },
+      { path: 'orders', component: ManageOrdersComponent },
       { path: 'reports', component: ReportsComponent },
       { path: 'notices', component: NoticesComponent },
       { path: 'profile', component: AdminProfile }

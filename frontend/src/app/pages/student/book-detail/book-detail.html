@@ -221,3 +221,19 @@
     </div>
   </div>
 </div>
+
+<!-- Demo Payment Modal -->
+<app-demo-payment-modal
+  *ngIf="showPaymentModal"
+  [isOpen]="showPaymentModal"
+  paymentType="book"
+  [description]="paymentDescription"
+  [amount]="paymentAmount"
+  [customerName]="authService.getUser()?.fullName || ''"
+  [customerEmail]="authService.getUser()?.email || ''"
+  [bookTitle]="paymentBookTitle"
+  [bookAuthor]="paymentBookAuthor"
+  [orderId]="paymentOrderId"
+  (paymentComplete)="onPaymentComplete()"
+  (closed)="onPaymentModalClose()">
+</app-demo-payment-modal>

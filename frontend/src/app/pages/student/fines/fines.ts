@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FineService, Fine } from '../../../services/fine';
 import { AuthService } from '../../../services/auth';
 import { SnackbarService } from '../../../services/snackbar';
+import { DemoPaymentService } from '../../../services/demo-payment';
+import { DemoPaymentModalComponent } from '../../../components/demo-payment-modal/demo-payment-modal';
 
 @Component({
   selector: 'app-fines',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DemoPaymentModalComponent],
   templateUrl: './fines.html',
   styleUrls: ['./fines.css']
 })
@@ -19,15 +21,21 @@ export class FinesComponent implements OnInit, OnDestroy {
   processingPayment: number | null = null;
   private refreshTimer: any;
 
+  showPaymentModal = false;
+  paymentAmount = 0;
+  paymentDescription = '';
+  currentTransactionId = '';
+  currentFineId?: number;
+
   constructor(
     private fineService: FineService,
-    private authService: AuthService,
-    private snackbar: SnackbarService
+    public authService: AuthService,
+    private snackbar: SnackbarService,
+    private demoPaymentService: DemoPaymentService
   ) { }
 
   ngOnInit() {
     this.loadFines();
-    // Dynamic overdue fines increase over time, so refresh periodically.
     this.refreshTimer = setInterval(() => this.loadFines(true), 60_000);
   }
 
@@ -66,19 +74,26 @@ export class FinesComponent implements OnInit, OnDestroy {
   payFine(fineId: number) {
     const fine = this.fines.find((f) => f.id === fineId);
     const outstanding = fine ? this.getOutstanding(fine) : 0;
-    const confirmPay = confirm(`Pay outstanding fine ₹${outstanding}?`);
-    if (!confirmPay) return;
+
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      this.snackbar.show('Please login to pay fine');
+      return;
+    }
 
     this.processingPayment = fineId;
 
-    this.fineService.payFine(fineId, 'ONLINE').subscribe({
+    this.demoPaymentService.createFinePaymentOrder(userId, fineId).subscribe({
       next: (res) => {
-        this.processingPayment = null;
-        if (res.success) {
-          this.snackbar.show('Fine paid successfully!');
-          this.loadFines();
+        if (res.success && res.orderId) {
+          this.currentTransactionId = res.orderId;
+          this.currentFineId = fineId;
+          this.paymentAmount = res.amount || outstanding;
+          this.paymentDescription = res.description || 'Fine Payment';
+          this.showPaymentModal = true;
         } else {
-          this.snackbar.show(res.message || 'Payment failed');
+          this.processingPayment = null;
+          this.snackbar.show(res.message || 'Failed to initiate payment');
         }
       },
       error: (err) => {
@@ -88,34 +103,50 @@ export class FinesComponent implements OnInit, OnDestroy {
     });
   }
 
+  onPaymentComplete() {
+    if (this.currentFineId) {
+      this.demoPaymentService.verifyFinePayment(this.currentTransactionId, this.currentFineId).subscribe({
+        next: (res) => {
+          this.processingPayment = null;
+          this.showPaymentModal = false;
+          if (res.success) {
+            this.snackbar.show('Fine payment successful!');
+            this.loadFines();
+          } else {
+            this.snackbar.show(res.message || 'Payment verification failed');
+          }
+        },
+        error: () => {
+          this.processingPayment = null;
+          this.showPaymentModal = false;
+          this.snackbar.show('Payment verification failed');
+        }
+      });
+    }
+  }
+
+  onPaymentModalClose() {
+    this.showPaymentModal = false;
+    this.processingPayment = null;
+  }
+
   payAllFines() {
     if (this.totalPending <= 0) return;
 
-    const confirmPay = confirm(`Pay all fines totaling ₹${this.totalPending}?`);
+    const pendingFines = this.fines.filter(f => f.status === 'PENDING');
+    const confirmPay = confirm(
+      `Pay all ${pendingFines.length} fines totaling ₹${this.totalPending}?`
+    );
     if (!confirmPay) return;
 
-    this.processingPayment = -1;
-
-    let paid = 0;
-    const pendingFines = this.fines.filter(f => f.status === 'PENDING');
-    
     const payNext = (index: number) => {
       if (index >= pendingFines.length) {
-        this.processingPayment = null;
-        this.snackbar.show(`Paid ${paid} fine(s) successfully!`);
+        this.snackbar.show('All fines processing initiated!');
         this.loadFines();
         return;
       }
 
-      this.fineService.payFine(pendingFines[index].id, 'ONLINE').subscribe({
-        next: (res) => {
-          if (res.success) paid++;
-          payNext(index + 1);
-        },
-        error: () => {
-          payNext(index + 1);
-        }
-      });
+      this.payFine(pendingFines[index].id);
     };
 
     payNext(0);

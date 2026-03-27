@@ -9,7 +9,8 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const token = authService.getToken();
-  const skipLogout = request.url.includes('/api/reports');
+  const skipLogout = request.url.includes('/api/reports') 
+    || request.url.includes('/api/demo-payment');
 
   if (!token) {
     return next(request);

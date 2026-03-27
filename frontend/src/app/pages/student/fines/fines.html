@@ -96,3 +96,17 @@
     </table>
   </div>
 </div>
+
+<!-- Demo Payment Modal -->
+<app-demo-payment-modal
+  *ngIf="showPaymentModal"
+  [isOpen]="showPaymentModal"
+  paymentType="fine"
+  [description]="paymentDescription"
+  [amount]="paymentAmount"
+  [fineId]="currentFineId"
+  [customerName]="authService.getUser()?.fullName || ''"
+  [customerEmail]="authService.getUser()?.email || ''"
+  (paymentComplete)="onPaymentComplete()"
+  (closed)="onPaymentModalClose()">
+</app-demo-payment-modal>
