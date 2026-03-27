@@ -49,21 +49,22 @@ public class FineService {
         dto.setId(fine.getId());
         dto.setDueDate(fine.getDueDate());
         dto.setReturnDate(fine.getReturnDate());
-        
+
         int calculatedLateDays = calculateLateDays(fine.getDueDate(), fine.getReturnDate());
         dto.setLateDays(calculatedLateDays);
-        
+
         dto.setFinePerDay(fine.getFinePerDay() != null ? fine.getFinePerDay() : 0);
-        
+
         double calculatedAmount = calculatedLateDays * finePerDay;
-        double totalFine = calculatedAmount > 0 ? calculatedAmount : (fine.getFineAmount() != null ? fine.getFineAmount() : 0);
+        double totalFine = calculatedAmount > 0 ? calculatedAmount
+                : (fine.getFineAmount() != null ? fine.getFineAmount() : 0);
         dto.setFineAmount(totalFine);
-        
+
         dto.setFineStatus(fine.getFineStatus() != null ? fine.getFineStatus().name() : "UNPAID");
         dto.setPaymentId(fine.getPaymentId());
         dto.setCreatedAt(fine.getCreatedAt());
         dto.setBorrowId(fine.getBorrow() != null ? fine.getBorrow().getId() : null);
-        
+
         if (fine.getFineStatus() == Fine.FineStatus.PAID) {
             dto.setPaidAmount(totalFine);
         } else {
@@ -111,7 +112,7 @@ public class FineService {
         fine.setLateDays(lateDays);
         fine.setFinePerDay(finePerDay);
         fine.setFineAmount(fineAmount);
-        
+
         if (fine.getFineStatus() == null) {
             fine.setFineStatus(Fine.FineStatus.UNPAID);
         }
@@ -165,7 +166,7 @@ public class FineService {
         recalculateAllFines();
         return getAllFines();
     }
-    
+
     @Transactional
     public void recalculateAllFines() {
         List<Borrow> overdueBorrows = borrowRepository.findBorrowsWithPotentialFines();
@@ -176,19 +177,19 @@ public class FineService {
                 System.err.println("Error recalculating fine for borrow " + borrow.getId() + ": " + e.getMessage());
             }
         }
-        
+
         List<Fine> allExistingFines = fineRepository.findAll();
         for (Fine fine : allExistingFines) {
             try {
                 if (fine.getFineStatus() == Fine.FineStatus.PAID) {
                     continue;
                 }
-                
+
                 int calculatedLateDays = calculateLateDays(fine.getDueDate(), fine.getReturnDate());
                 if (calculatedLateDays <= 0) {
                     continue;
                 }
-                
+
                 double calculatedAmount = calculatedLateDays * finePerDay;
                 fine.setLateDays(calculatedLateDays);
                 fine.setFineAmount(calculatedAmount);

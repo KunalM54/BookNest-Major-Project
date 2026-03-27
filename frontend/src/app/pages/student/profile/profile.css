@@ -10,27 +10,39 @@
   margin-bottom: 2.5rem;
 }
 
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .page-title {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 2rem;
-  font-weight: 600;
-  color: #6366f1;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1E293B;
   margin: 0;
-  letter-spacing: -0.02em;
 }
 
-.page-title .material-icons {
-  color: #6366f1;
-  font-size: 1.75rem;
+.page-icon {
+  color: #667EEA;
+  font-size: 28px;
 }
 
 .page-subtitle {
-  margin: 8px 0 0;
-  color: #64748b;
-  font-size: 1rem;
-  font-weight: 400;
+  font-size: 0.9rem;
+  color: #64748B;
+  margin: 0;
+  padding-left: 40px;
 }
 
 /* ===== TABS NAVIGATION ===== */
@@ -362,7 +374,7 @@
 .lock-icon {
   width: 64px;
   height: 64px;
-  background: #DBEAFE;
+  background: #EDE9FE;
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -372,7 +384,7 @@
 
 .lock-icon .material-icons {
   font-size: 32px;
-  color: #2563EB;
+  color: #667EEA;
 }
 
 .password-header h3 {

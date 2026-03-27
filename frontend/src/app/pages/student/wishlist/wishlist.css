@@ -22,7 +22,7 @@
 }
 
 .page-icon {
-  color: #dc2626;
+  color: #667EEA;
 }
 
 .page-subtitle {
@@ -42,8 +42,8 @@
 .spinner {
   width: 48px;
   height: 48px;
-  border: 4px solid #e2e8f0;
-  border-top-color: #3b82f6;
+  border: 4px solid #E2E8F0;
+  border-top-color: #667EEA;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 16px;
@@ -93,18 +93,19 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  background: #3b82f6;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
 }
 
 .btn-primary:hover {
-  background: #2563eb;
+  opacity: 0.9;
+  transform: translateY(-1px);
 }
 
 .wishlist-grid {
@@ -217,8 +218,13 @@
 
 .card-actions {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-actions-row {
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -229,34 +235,37 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  flex: 1;
 }
 
 .btn-view {
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: #1f2a44;
+  border: 1px solid #E2E8F0;
+  background: #F8FAFC;
+  color: #1E293B;
 }
 
 .btn-view:hover {
-  border-color: #93c5fd;
-  color: #2563eb;
+  border-color: #667EEA;
+  color: #667EEA;
+  background: #F1F5F9;
 }
 
 .btn-borrow {
-  background: #2563eb;
-  border: 1px solid #2563eb;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+  border: none;
   color: white;
 }
 
 .btn-borrow:hover:not(:disabled) {
-  background: #1d4ed8;
-  border-color: #1d4ed8;
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .btn-borrow:disabled {
@@ -265,18 +274,20 @@
 }
 
 .btn-remove {
-  margin-left: auto;
+  margin-top: 4px;
   background: transparent;
   border: none;
-  color: #64748b;
-  padding: 6px 8px;
+  color: #64748B;
+  padding: 8px;
   font-size: 0.8rem;
   font-weight: 500;
+  flex: unset;
+  width: 100%;
 }
 
 .btn-remove:hover {
-  color: #dc2626;
-  background: #fef2f2;
+  color: #DC2626;
+  background: #FEF2F2;
 }
 
 .btn-view .material-icons,

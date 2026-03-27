@@ -34,11 +34,19 @@
   font-size: 28px;
 }
 
+.page-subtitle {
+  font-size: 0.9rem;
+  color: #64748B;
+  margin: 0;
+  padding-left: 40px;
+}
+
 /* Content Card */
 .content-card {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
@@ -232,8 +240,8 @@ tbody tr:hover {
 }
 
 .page-btn.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: #667EEA;
+  border-color: #667EEA;
   color: white;
 }
 

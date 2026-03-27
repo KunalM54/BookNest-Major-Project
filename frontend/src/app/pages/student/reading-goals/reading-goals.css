@@ -28,7 +28,7 @@
 }
 
 .page-icon {
-  color: #F59E0B;
+  color: #667EEA;
   font-size: 28px;
 }
 
@@ -44,18 +44,19 @@
   gap: 6px;
   padding: 12px 20px;
   border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
   color: white;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .btn-add:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 .btn-add .material-icons {
@@ -88,7 +89,7 @@
 }
 
 .goal-card.active {
-  border: 2px solid #F59E0B;
+  border: 2px solid #667EEA;
 }
 
 .goal-header {
@@ -133,7 +134,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #F59E0B, #FBBF24);
+  background: linear-gradient(90deg, #667EEA, #764BA2);
   border-radius: 6px;
   transition: width 0.5s ease;
 }
@@ -172,8 +173,8 @@
 }
 
 .btn-update:hover {
-  border-color: #F59E0B;
-  color: #F59E0B;
+  border-color: #667EEA;
+  color: #667EEA;
 }
 
 .btn-update .material-icons {
@@ -198,6 +199,7 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #F1F5F9;
 }
 
 .goal-info {
@@ -243,7 +245,7 @@
 
 .mini-progress-fill {
   height: 100%;
-  background: #F59E0B;
+  background: #667EEA;
   border-radius: 3px;
 }
 
@@ -286,11 +288,12 @@
   background: white;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid #F1F5F9;
 }
 
 .empty-icon {
   font-size: 80px;
-  color: #FCD34D;
+  color: #CBD5E1;
   margin-bottom: 20px;
 }
 
@@ -378,7 +381,7 @@
   width: 100%;
   padding: 12px 14px;
   border: 1px solid #D1D5DB;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.95rem;
   color: #374151;
   transition: all 0.2s ease;
@@ -386,8 +389,8 @@
 
 .form-input:focus, .form-select:focus {
   outline: none;
-  border-color: #F59E0B;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+  border-color: #667EEA;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .modal-footer {
@@ -401,7 +404,7 @@
 .btn-cancel {
   padding: 10px 20px;
   border: 1px solid #E2E8F0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: white;
   color: #64748B;
   font-weight: 500;
@@ -415,15 +418,17 @@
 .btn-submit {
   padding: 10px 24px;
   border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
   color: white;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .btn-submit:hover {
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

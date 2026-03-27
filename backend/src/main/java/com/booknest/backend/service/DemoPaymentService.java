@@ -79,7 +79,6 @@ public class DemoPaymentService {
         response.put("currency", "INR");
         response.put("studentName", user.getFullName());
         response.put("studentEmail", user.getEmail());
-        response.put("studentPhone", user.getPhone() != null ? user.getPhone() : "");
         response.put("bookTitle", book.getTitle());
         response.put("paymentMode", "DEMO");
 
@@ -128,7 +127,6 @@ public class DemoPaymentService {
         response.put("currency", "INR");
         response.put("studentName", user.getFullName());
         response.put("studentEmail", user.getEmail());
-        response.put("studentPhone", user.getPhone() != null ? user.getPhone() : "");
         response.put("description", "Fine Payment - " + bookTitle);
         response.put("paymentMode", "DEMO");
 

@@ -86,8 +86,6 @@ public class UserController {
                         result.put("fullName", user.getFullName());
                         result.put("studentId", user.getStudentId());
                         result.put("email", user.getEmail());
-                        result.put("phone", user.getPhone());
-                        result.put("department", user.getDepartment());
                         result.put("role", user.getRole().name());
                         result.put("active", user.isActive());
                         result.put("borrowedCount", borrowRepository.countActiveByStudent(user));
@@ -134,13 +132,7 @@ public class UserController {
                         }
                         user.setEmail(newEmail);
                     }
-                    if (updates.containsKey("phone") && updates.get("phone") != null) {
-                        user.setPhone(updates.get("phone"));
-                    }
-                    if (updates.containsKey("department") && updates.get("department") != null) {
-                        user.setDepartment(updates.get("department"));
-                    }
-                    
+
                     User updatedUser = userRepository.save(user);
                     response.put("success", true);
                     response.put("message", "Profile updated successfully");

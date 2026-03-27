@@ -62,9 +62,53 @@ export class AuthService {
       email: session.email,
       role: session.role,
       userId: session.userId,
-      studentId: (session as any).studentId,
-      sid: (session as any).sid
+      studentId: session.studentId,
+      sid: session.sid
     };
+  }
+
+  getUserDirect(): AuthUser | null {
+    const storage = this.tabStorage;
+    if (storage) {
+      const stored = storage.getItem(this.sessionStorageKey);
+      if (stored) {
+        try {
+          const session = this.normalizeSession(JSON.parse(stored));
+          if (session.token) {
+            return {
+              fullName: session.fullName,
+              email: session.email,
+              role: session.role,
+              userId: session.userId,
+              studentId: session.studentId,
+              sid: session.sid
+            };
+          }
+        } catch { }
+      }
+    }
+
+    const shared = this.sharedStorage;
+    if (shared) {
+      const stored = shared.getItem(this.sessionStorageKey);
+      if (stored) {
+        try {
+          const session = this.normalizeSession(JSON.parse(stored));
+          if (session.token) {
+            return {
+              fullName: session.fullName,
+              email: session.email,
+              role: session.role,
+              userId: session.userId,
+              studentId: session.studentId,
+              sid: session.sid
+            };
+          }
+        } catch { }
+      }
+    }
+
+    return null;
   }
 
   getUserId(): number | null {

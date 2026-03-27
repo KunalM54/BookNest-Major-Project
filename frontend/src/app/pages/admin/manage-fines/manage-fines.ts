@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 
 interface Fine {
   id: number;
@@ -24,7 +25,7 @@ interface Fine {
 @Component({
   selector: 'app-manage-fines',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GlobalSearchBarComponent],
   templateUrl: './manage-fines.html',
   styleUrls: ['./manage-fines.css']
 })
@@ -32,7 +33,6 @@ export class ManageFinesComponent implements OnInit {
   fines: Fine[] = [];
   filteredFines: Fine[] = [];
   isLoading = false;
-  errorMessage = '';
   searchTerm = '';
   statusFilter = 'all';
 
@@ -49,7 +49,6 @@ export class ManageFinesComponent implements OnInit {
 
   loadFines() {
     this.isLoading = true;
-    this.errorMessage = '';
 
     this.http.get<any>('http://localhost:8080/api/admin/fines/all').subscribe({
       next: (res) => {
@@ -61,20 +60,15 @@ export class ManageFinesComponent implements OnInit {
           this.paidCount = res.paidCount || 0;
         } else {
           this.fines = [];
-          this.errorMessage = res.message || 'Failed to load fines';
         }
         this.applyFilters();
         this.isLoading = false;
       },
-      error: (err) => {
-        this.errorMessage = 'Failed to load fines';
+      error: () => {
+        this.fines = [];
         this.isLoading = false;
       }
     });
-  }
-
-  refreshFines() {
-    this.loadFines();
   }
 
   applyFilters() {

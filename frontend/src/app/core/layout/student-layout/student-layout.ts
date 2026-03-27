@@ -35,11 +35,18 @@ export class StudentLayoutComponent implements OnInit, OnDestroy {
   }
 
   loadStudentInfo() {
-    const user = this.authService.getUser();
+    const user = this.authService.getUserDirect();
     if (user) {
       this.studentName = user.fullName || 'Student';
       this.studentId = user.studentId || user.sid || '';
       this.studentInitials = this.getInitials(this.studentName);
+    } else {
+      const userFallback = this.authService.getUser();
+      if (userFallback) {
+        this.studentName = userFallback.fullName || 'Student';
+        this.studentId = userFallback.studentId || userFallback.sid || '';
+        this.studentInitials = this.getInitials(this.studentName);
+      }
     }
   }
 

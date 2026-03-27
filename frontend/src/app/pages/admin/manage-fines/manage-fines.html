@@ -1,4 +1,6 @@
 <div class="page-container">
+
+  <!-- Page Header -->
   <div class="page-header">
     <div class="header-left">
       <h1 class="page-title">
@@ -7,21 +9,16 @@
       </h1>
       <p class="page-subtitle">View and manage student fines for late book returns</p>
     </div>
-    <div class="header-actions">
-      <button class="btn-refresh" (click)="refreshFines()">
-        <span class="material-icons">refresh</span>
-        Refresh
-      </button>
-    </div>
   </div>
 
+  <!-- Stats Row -->
   <div class="stats-row">
     <div class="stat-card">
       <div class="stat-icon pending">
-        <span class="material-icons">pending</span>
+        <span class="material-icons">hourglass_empty</span>
       </div>
       <div class="stat-content">
-        <span class="stat-value">₹{{ totalPending }}</span>
+        <span class="stat-value">{{ totalPending | number: '1.0-0' }}</span>
         <span class="stat-label">Total Pending</span>
       </div>
     </div>
@@ -45,74 +42,107 @@
     </div>
   </div>
 
-  <div class="toolbar">
-    <div class="search-box">
-      <span class="material-icons search-icon">search</span>
-      <input 
-        type="text" 
-        class="search-input" 
-        placeholder="Search by book title, student name or ID..."
-        [(ngModel)]="searchTerm"
-        (input)="applyFilters()"
-      />
+  <!-- Sticky Sub-header with Search & Filters -->
+  <div class="sub-header">
+    <div class="filters-left">
+      <div class="filter-tabs">
+        <button class="filter-tab" [class.active]="statusFilter === 'all'" (click)="statusFilter = 'all'; applyFilters()">
+          All
+        </button>
+        <button class="filter-tab" [class.active]="statusFilter === 'pending'" (click)="statusFilter = 'pending'; applyFilters()">
+          Pending
+          <span class="badge" *ngIf="pendingCount > 0">{{ pendingCount }}</span>
+        </button>
+        <button class="filter-tab" [class.active]="statusFilter === 'paid'" (click)="statusFilter = 'paid'; applyFilters()">
+          Paid
+        </button>
+      </div>
     </div>
-    <div class="filter-group">
-      <select class="filter-select" [(ngModel)]="statusFilter" (change)="applyFilters()">
-        <option value="all">All Status</option>
-        <option value="paid">Paid</option>
-        <option value="pending">Pending</option>
-      </select>
+    <app-global-search-bar 
+      placeholder="Search by book, student, or ID..." 
+      [(value)]="searchTerm"
+      (valueChange)="applyFilters()">
+    </app-global-search-bar>
+  </div>
+
+  <!-- Data Table Card -->
+  <div class="table-card">
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading fines...</p>
     </div>
-  </div>
 
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading fines...</p>
-  </div>
-
-  <div *ngIf="errorMessage" class="error-message">
-    {{ errorMessage }}
-  </div>
-
-  <div *ngIf="!isLoading && filteredFines.length === 0" class="empty-state">
-    <span class="material-icons empty-icon">check_circle</span>
-    <h3>No fines found</h3>
-    <p>There are no fines matching your criteria</p>
-  </div>
-
-  <div *ngIf="!isLoading && filteredFines.length > 0" class="table-container">
-    <table class="data-table">
+    <table class="data-table" *ngIf="!isLoading">
       <thead>
         <tr>
-          <th>Student</th>
-          <th>Book</th>
-          <th class="text-center">Days Late</th>
-          <th class="text-right">Amount</th>
-          <th class="text-right">Paid</th>
-          <th class="text-center">Date</th>
-          <th class="text-center">Status</th>
+          <th class="col-student">Student</th>
+          <th class="col-book">Book</th>
+          <th class="col-days">Days Late</th>
+          <th class="col-amount">Amount</th>
+          <th class="col-paid">Paid</th>
+          <th class="col-date">Date</th>
+          <th class="col-status">Status</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let fine of filteredFines">
-          <td>
-            <div class="student-cell">
-              <div class="avatar">{{ getInitials(fine.studentName || 'NA') }}</div>
-              <span class="student-name">{{ fine.studentName || 'N/A' }}</span>
+        <tr *ngFor="let fine of filteredFines" class="table-row">
+          <td class="col-student">
+            <div class="user-cell">
+              <div class="user-avatar">{{ getInitials(fine.studentName || 'NA') }}</div>
+              <div class="user-details">
+                <span class="user-name">{{ fine.studentName || 'N/A' }}</span>
+                <span class="user-id">{{ fine.studentId || '' }}</span>
+              </div>
             </div>
           </td>
-          <td class="book-cell">{{ fine.bookTitle || 'N/A' }}</td>
-          <td class="text-center days-cell">{{ fine.lateDays }} days</td>
-          <td class="text-right amount-cell">₹{{ fine.fineAmount }}</td>
-          <td class="text-right paid-cell">₹{{ getPaidAmount(fine) }}</td>
-          <td class="text-center date-cell">{{ fine.createdAt | date: 'MMM dd, yyyy' }}</td>
-          <td class="text-center">
-            <span class="status-badge" [ngClass]="getStatusClass(fine)">
+          <td class="col-book">
+            <div class="book-cell">
+              <div class="book-icon">
+                <span class="material-icons">menu_book</span>
+              </div>
+              <div class="book-details">
+                <span class="book-title">{{ fine.bookTitle || 'N/A' }}</span>
+              </div>
+            </div>
+          </td>
+          <td class="col-days">
+            <span class="days-badge">{{ fine.lateDays }} days</span>
+          </td>
+          <td class="col-amount">
+            <span class="amount-value">₹{{ fine.fineAmount }}</span>
+          </td>
+          <td class="col-paid">
+            <span class="paid-value">₹{{ getPaidAmount(fine) }}</span>
+          </td>
+          <td class="col-date">
+            {{ fine.createdAt ? (fine.createdAt | date: 'MMM dd, yyyy') : '—' }}
+          </td>
+          <td class="col-status">
+            <span class="status-pill" [ngClass]="getStatusClass(fine)">
               {{ getStatus(fine) }}
             </span>
           </td>
         </tr>
+
+        <!-- Empty State -->
+        <tr *ngIf="filteredFines.length === 0" class="empty-row">
+          <td colspan="7">
+            <div class="empty-state">
+              <span class="material-icons empty-icon">account_balance_wallet</span>
+              <h3>No fines found</h3>
+              <p>There are no fines matching your criteria.</p>
+            </div>
+          </td>
+        </tr>
       </tbody>
     </table>
+
+    <!-- Table Footer -->
+    <div class="table-footer" *ngIf="!isLoading && filteredFines.length > 0">
+      <div class="footer-info">
+        Showing <strong>{{ filteredFines.length }}</strong> of <strong>{{ fines.length }}</strong> fines
+      </div>
+    </div>
   </div>
+
 </div>

@@ -202,7 +202,6 @@ public class Order {
         if (this.student != null) {
             this.studentName = this.student.getFullName();
             this.studentEmail = this.student.getEmail();
-            this.studentPhone = this.student.getPhone();
         }
     }
 }

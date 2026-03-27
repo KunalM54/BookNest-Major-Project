@@ -42,7 +42,6 @@ import { ReceiptService } from '../../../services/receipt.service';
         </div>
 
         <div class="order-item" *ngFor="let order of orders">
-          <!-- Order Header -->
           <div class="order-header">
             <div class="order-meta">
               <span class="order-id">Order #{{ order.transactionId.substring(0, 20) }}</span>
@@ -54,7 +53,6 @@ import { ReceiptService } from '../../../services/receipt.service';
             </div>
           </div>
 
-          <!-- Order Body - Book Info -->
           <div class="order-body">
             <div class="book-info">
               <div class="book-icon">
@@ -67,7 +65,6 @@ import { ReceiptService } from '../../../services/receipt.service';
               </div>
             </div>
 
-            <!-- Status Actions -->
             <div class="status-actions">
               <div class="action-notice" [ngClass]="getNoticeClass(order.status)">
                 <span class="material-icons">{{ getNoticeIcon(order.status) }}</span>
@@ -76,7 +73,6 @@ import { ReceiptService } from '../../../services/receipt.service';
             </div>
           </div>
 
-          <!-- Order Footer -->
           <div class="order-footer">
             <button class="btn-action receipt" (click)="downloadReceipt(order)">
               <span class="material-icons">receipt_long</span>
@@ -91,7 +87,6 @@ import { ReceiptService } from '../../../services/receipt.service';
       </div>
     </div>
 
-    <!-- Receipt Modal -->
     <div class="modal-overlay" *ngIf="showReceiptModal" (click)="closeReceiptModal()">
       <div class="modal-card" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -153,23 +148,69 @@ import { ReceiptService } from '../../../services/receipt.service';
     </div>
   `,
   styles: [`
+    /* Page Container */
+    .page-container {
+      padding: 0;
+      background: #F8FAFC;
+      min-height: calc(100vh - 56px);
+      max-width: 100%;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 24px 24px 0;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1E293B;
+      margin: 0;
+    }
+
+    .page-icon {
+      color: #667EEA;
+      font-size: 28px;
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+      color: #64748B;
+      margin: 0;
+      padding-left: 40px;
+    }
+
+    /* Orders Container */
     .orders-container {
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      border: 1px solid #E2E8F0;
+      margin: 24px;
     }
 
     .orders-count {
       padding: 16px 20px;
-      background: #f8f9fa;
-      border-bottom: 1px solid #eee;
+      background: #F8FAFC;
+      border-bottom: 1px solid #E2E8F0;
       font-weight: 600;
-      color: #333;
+      color: #1E293B;
     }
 
     .order-item {
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #E2E8F0;
     }
 
     .order-item:last-child {
@@ -181,8 +222,8 @@ import { ReceiptService } from '../../../services/receipt.service';
       justify-content: space-between;
       align-items: center;
       padding: 16px 20px;
-      background: #f8f9fa;
-      border-bottom: 1px solid #eee;
+      background: #F8FAFC;
+      border-bottom: 1px solid #E2E8F0;
     }
 
     .order-meta {
@@ -193,13 +234,13 @@ import { ReceiptService } from '../../../services/receipt.service';
 
     .order-id {
       font-weight: 600;
-      color: #333;
+      color: #1E293B;
       font-size: 14px;
     }
 
     .order-date {
       font-size: 12px;
-      color: #999;
+      color: #94A3B8;
     }
 
     .order-status {
@@ -217,18 +258,18 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .order-status.pending {
-      background: #fff3cd;
-      color: #856404;
+      background: #FEF3C7;
+      color: #D97706;
     }
 
     .order-status.completed {
-      background: #d4edda;
-      color: #155724;
+      background: #D1FAE5;
+      color: #059669;
     }
 
     .order-status.given {
-      background: #cce5ff;
-      color: #004085;
+      background: #DBEAFE;
+      color: #2563EB;
     }
 
     .order-body {
@@ -247,7 +288,7 @@ import { ReceiptService } from '../../../services/receipt.service';
     .book-icon {
       width: 60px;
       height: 60px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
       color: white;
       border-radius: 12px;
       display: flex;
@@ -270,20 +311,20 @@ import { ReceiptService } from '../../../services/receipt.service';
       margin: 0;
       font-size: 16px;
       font-weight: 600;
-      color: #333;
+      color: #1E293B;
     }
 
     .book-author {
       margin: 0;
       font-size: 13px;
-      color: #666;
+      color: #64748B;
     }
 
     .book-price {
       margin: 4px 0 0 0;
       font-size: 18px;
       font-weight: 700;
-      color: #667eea;
+      color: #667EEA;
     }
 
     .status-actions {
@@ -303,18 +344,18 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .action-notice.waiting {
-      background: #fff3cd;
-      color: #856404;
+      background: #FEF3C7;
+      color: #D97706;
     }
 
     .action-notice.ready {
-      background: #d4edda;
-      color: #155724;
+      background: #D1FAE5;
+      color: #059669;
     }
 
     .action-notice.collected {
-      background: #cce5ff;
-      color: #004085;
+      background: #DBEAFE;
+      color: #2563EB;
     }
 
     .action-notice .material-icons {
@@ -326,8 +367,8 @@ import { ReceiptService } from '../../../services/receipt.service';
       display: flex;
       gap: 12px;
       padding: 16px 20px;
-      background: #fafafa;
-      border-top: 1px solid #eee;
+      background: #FAFAFA;
+      border-top: 1px solid #E2E8F0;
     }
 
     .btn-action {
@@ -335,12 +376,12 @@ import { ReceiptService } from '../../../services/receipt.service';
       align-items: center;
       gap: 8px;
       padding: 10px 20px;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s;
-      border: 1px solid #ddd;
+      border: 1px solid #E2E8F0;
       background: white;
     }
 
@@ -349,46 +390,53 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .btn-action.receipt {
-      background: #667eea;
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
       color: white;
-      border-color: #667eea;
+      border-color: transparent;
     }
 
     .btn-action.receipt:hover {
-      background: #5a6fd6;
+      opacity: 0.9;
+      transform: translateY(-1px);
     }
 
     .btn-action.view {
-      color: #333;
+      color: #64748B;
     }
 
     .btn-action.view:hover {
-      background: #f0f0f0;
+      background: #F1F5F9;
+      border-color: #667EEA;
+      color: #667EEA;
     }
 
     .empty-state {
       text-align: center;
       padding: 80px 20px;
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
+      margin: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      border: 1px solid #E2E8F0;
     }
 
     .empty-icon {
-      font-size: 100px;
-      color: #ddd;
+      font-size: 80px;
+      color: #CBD5E1;
       margin-bottom: 24px;
     }
 
     .empty-state h3 {
       margin: 0 0 12px 0;
-      color: #666;
-      font-size: 24px;
+      color: #64748B;
+      font-size: 1.25rem;
+      font-weight: 600;
     }
 
     .empty-state p {
-      color: #999;
+      color: #94A3B8;
       margin: 0 0 24px 0;
-      font-size: 16px;
+      font-size: 1rem;
     }
 
     .btn {
@@ -397,20 +445,20 @@ import { ReceiptService } from '../../../services/receipt.service';
       justify-content: center;
       gap: 8px;
       padding: 14px 28px;
-      border-radius: 10px;
+      border-radius: 12px;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 0.95rem;
       text-decoration: none;
       transition: all 0.2s;
     }
 
     .btn-primary {
-      background: #667eea;
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
       color: white;
     }
 
     .btn-primary:hover {
-      background: #5a6fd6;
+      opacity: 0.9;
       transform: translateY(-2px);
     }
 
@@ -418,14 +466,17 @@ import { ReceiptService } from '../../../services/receipt.service';
       text-align: center;
       padding: 80px 20px;
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
+      margin: 24px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      border: 1px solid #E2E8F0;
     }
 
     .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
+      width: 48px;
+      height: 48px;
+      border: 4px solid #E2E8F0;
+      border-top-color: #667EEA;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 20px;
@@ -465,20 +516,21 @@ import { ReceiptService } from '../../../services/receipt.service';
       justify-content: space-between;
       align-items: center;
       padding: 20px 24px;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #E2E8F0;
     }
 
     .modal-header h3 {
       margin: 0;
-      font-size: 18px;
-      color: #333;
+      font-size: 1.125rem;
+      color: #1E293B;
+      font-weight: 600;
     }
 
     .close-btn {
       background: none;
       border: none;
       cursor: pointer;
-      color: #666;
+      color: #64748B;
       padding: 4px;
       display: flex;
       align-items: center;
@@ -488,8 +540,12 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .close-btn:hover {
-      background: #f0f0f0;
-      color: #333;
+      background: #F1F5F9;
+      color: #1E293B;
+    }
+
+    .close-btn .material-icons {
+      font-size: 24px;
     }
 
     .modal-body {
@@ -498,7 +554,7 @@ import { ReceiptService } from '../../../services/receipt.service';
 
     .modal-footer {
       padding: 16px 24px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid #E2E8F0;
     }
 
     .modal-footer .btn {
@@ -515,7 +571,7 @@ import { ReceiptService } from '../../../services/receipt.service';
       justify-content: space-between;
       align-items: center;
       padding-bottom: 20px;
-      border-bottom: 2px dashed #ddd;
+      border-bottom: 2px dashed #E2E8F0;
       margin-bottom: 20px;
     }
 
@@ -524,15 +580,16 @@ import { ReceiptService } from '../../../services/receipt.service';
       align-items: center;
       gap: 8px;
       font-weight: 700;
-      font-size: 20px;
+      font-size: 1.25rem;
+      color: #1E293B;
     }
 
     .logo .material-icons {
-      color: #667eea;
+      color: #667EEA;
     }
 
     .receipt-badge {
-      background: #667eea;
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
       color: white;
       padding: 6px 16px;
       border-radius: 20px;
@@ -548,16 +605,16 @@ import { ReceiptService } from '../../../services/receipt.service';
       display: flex;
       justify-content: space-between;
       padding: 10px 0;
-      border-bottom: 1px dashed #eee;
+      border-bottom: 1px dashed #E2E8F0;
     }
 
     .info-row .label {
-      color: #666;
+      color: #64748B;
     }
 
     .info-row .value {
       font-weight: 500;
-      color: #333;
+      color: #1E293B;
       font-family: monospace;
       font-size: 13px;
     }
@@ -565,26 +622,26 @@ import { ReceiptService } from '../../../services/receipt.service';
     .book-section {
       text-align: left;
       padding: 16px;
-      background: #f8f9fa;
+      background: #F8FAFC;
       border-radius: 12px;
       margin-bottom: 16px;
     }
 
     .book-section h4 {
       font-size: 12px;
-      color: #999;
+      color: #94A3B8;
       margin: 0 0 8px 0;
       text-transform: uppercase;
     }
 
     .book-section .book-title {
       font-weight: 600;
-      color: #333;
+      color: #1E293B;
       margin: 0 0 4px 0;
     }
 
     .book-section .book-author {
-      color: #666;
+      color: #64748B;
       font-size: 14px;
       margin: 0;
     }
@@ -594,14 +651,14 @@ import { ReceiptService } from '../../../services/receipt.service';
       justify-content: space-between;
       align-items: center;
       padding: 20px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
       color: white;
       border-radius: 12px;
       margin-bottom: 16px;
     }
 
     .total-section .amount {
-      font-size: 28px;
+      font-size: 1.75rem;
       font-weight: 700;
     }
 
@@ -615,18 +672,18 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .status-badge.pending {
-      background: #fff3cd;
-      color: #856404;
+      background: #FEF3C7;
+      color: #D97706;
     }
 
     .status-badge.completed {
-      background: #d4edda;
-      color: #155724;
+      background: #D1FAE5;
+      color: #059669;
     }
 
     .status-badge.given {
-      background: #cce5ff;
-      color: #004085;
+      background: #DBEAFE;
+      color: #2563EB;
     }
 
     .notice-section {
@@ -639,15 +696,15 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .notice-section.waiting {
-      background: #fff3cd;
+      background: #FEF3C7;
     }
 
     .notice-section.ready {
-      background: #d4edda;
+      background: #D1FAE5;
     }
 
     .notice-section.collected {
-      background: #cce5ff;
+      background: #DBEAFE;
     }
 
     .notice-section .material-icons {
@@ -655,14 +712,14 @@ import { ReceiptService } from '../../../services/receipt.service';
       flex-shrink: 0;
     }
 
-    .notice-section.waiting .material-icons { color: #ffc107; }
-    .notice-section.waiting p { color: #856404; }
+    .notice-section.waiting .material-icons { color: #D97706; }
+    .notice-section.waiting p { color: #D97706; }
 
-    .notice-section.ready .material-icons { color: #28a745; }
-    .notice-section.ready p { color: #155724; }
+    .notice-section.ready .material-icons { color: #059669; }
+    .notice-section.ready p { color: #059669; }
 
-    .notice-section.collected .material-icons { color: #0d6efd; }
-    .notice-section.collected p { color: #004085; }
+    .notice-section.collected .material-icons { color: #2563EB; }
+    .notice-section.collected p { color: #2563EB; }
 
     .notice-section p {
       margin: 0;
@@ -686,6 +743,15 @@ import { ReceiptService } from '../../../services/receipt.service';
 
       .btn-action {
         justify-content: center;
+      }
+
+      .orders-container {
+        margin: 16px;
+      }
+
+      .empty-state,
+      .loading-state {
+        margin: 16px;
       }
     }
   `]

@@ -24,12 +24,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column
-    private String phone;
-
-    @Column
-    private String department;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
@@ -63,12 +57,6 @@ public class User {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
-    public String getDepartment() { return department; }
-    public void setDepartment(String department) { this.department = department; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

@@ -5,11 +5,12 @@ import { HttpClient } from '@angular/common/http';
 import { DemoPaymentService, Order } from '../../../services/demo-payment';
 import { SnackbarService } from '../../../services/snackbar';
 import { ReceiptService } from '../../../services/receipt.service';
+import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 
 @Component({
   selector: 'app-manage-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GlobalSearchBarComponent],
   template: `
     <div class="page-container">
 
@@ -64,7 +65,7 @@ import { ReceiptService } from '../../../services/receipt.service';
         </div>
       </div>
 
-      <!-- Sticky Sub-header with Filters -->
+      <!-- Sticky Sub-header with Search & Filters -->
       <div class="sub-header">
         <div class="filters-left">
           <div class="filter-tabs">
@@ -85,11 +86,16 @@ import { ReceiptService } from '../../../services/receipt.service';
             </button>
           </div>
         </div>
+        <app-global-search-bar 
+          placeholder="Search student or book..." 
+          [(value)]="searchTerm"
+          (valueChange)="filterOrders()">
+        </app-global-search-bar>
       </div>
 
       <!-- Data Table Card -->
       <div class="table-card">
-        <div *ngIf="isLoading" class="loading-overlay">
+        <div *ngIf="isLoading" class="loading-state">
           <div class="spinner"></div>
           <p>Loading orders...</p>
         </div>
@@ -114,7 +120,7 @@ import { ReceiptService } from '../../../services/receipt.service';
                   <div class="user-avatar">{{ getInitials(order.student.fullName) }}</div>
                   <div class="user-details">
                     <span class="user-name">{{ order.student.fullName }}</span>
-                    <span class="user-email">{{ order.student.email }}</span>
+                    <span class="user-id">{{ order.student.email }}</span>
                   </div>
                 </div>
               </td>
@@ -194,32 +200,85 @@ import { ReceiptService } from '../../../services/receipt.service';
             </tr>
           </tbody>
         </table>
+
+        <!-- Table Footer -->
+        <div class="table-footer" *ngIf="!isLoading && filteredOrders.length > 0">
+          <div class="footer-info">
+            Showing <strong>{{ filteredOrders.length }}</strong> of <strong>{{ orders.length }}</strong> orders
+          </div>
+        </div>
       </div>
 
     </div>
   `,
   styles: [`
-    /* Stats Row */
+    /* ===== BASE LAYOUT ===== */
+    .page-container {
+      padding: 0;
+      max-width: 100%;
+      background: #F8FAFC;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1E293B;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .page-icon {
+      color: #7C3AED;
+      font-size: 28px;
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+      color: #64748B;
+      margin: 0;
+      padding-left: 40px;
+    }
+
+    /* ===== STATS ROW ===== */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .stat-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
       display: flex;
       align-items: center;
       gap: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid #E2E8F0;
     }
 
     .stat-icon {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -230,90 +289,159 @@ import { ReceiptService } from '../../../services/receipt.service';
       font-size: 24px;
     }
 
-    .stat-icon.pending { background: #fff3cd; color: #856404; }
-    .stat-icon.completed { background: #d4edda; color: #28a745; }
-    .stat-icon.issued { background: #cce5ff; color: #004085; }
-    .stat-icon.revenue { background: #e8eaff; color: #667eea; }
+    .stat-icon.pending {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    .stat-icon.completed {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .stat-icon.issued {
+      background: #DBEAFE;
+      color: #2563EB;
+    }
+
+    .stat-icon.revenue {
+      background: #EDE9FE;
+      color: #7C3AED;
+    }
 
     .stat-content {
       display: flex;
       flex-direction: column;
+      gap: 2px;
     }
 
     .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: #333;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1E293B;
+      line-height: 1;
     }
 
     .stat-label {
-      font-size: 13px;
-      color: #666;
+      font-size: 0.8rem;
+      color: #64748B;
+      font-weight: 500;
     }
 
-    /* Sub Header */
+    /* ===== STICKY SUB-HEADER ===== */
     .sub-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 16px;
       padding: 12px 16px;
       background: white;
       border-radius: 12px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 8px;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #E2E8F0;
+    }
+
+    .sub-header app-global-search-bar {
+      margin-left: auto;
+    }
+
+    .filters-left {
+      display: flex;
+      align-items: center;
     }
 
     .filter-tabs {
       display: flex;
-      gap: 8px;
+      gap: 4px;
+      background: #F1F5F9;
+      padding: 4px;
+      border-radius: 10px;
     }
 
     .filter-tab {
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: #666;
-      transition: all 0.2s;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
     .filter-tab:hover {
-      background: #f0f0f0;
+      color: #1E293B;
+      background: rgba(255, 255, 255, 0.5);
     }
 
     .filter-tab.active {
-      background: #667eea;
-      color: white;
+      background: white;
+      color: #7C3AED;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .filter-tab .badge {
-      background: rgba(0,0,0,0.1);
-      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
       border-radius: 10px;
-      font-size: 12px;
+      background: #EDE9FE;
+      color: #7C3AED;
+      font-size: 0.7rem;
+      font-weight: 600;
     }
 
     .filter-tab.active .badge {
-      background: rgba(255,255,255,0.2);
+      background: #EDE9FE;
+      color: #7C3AED;
     }
 
-    /* Table */
+    /* ===== TABLE CARD ===== */
     .table-card {
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid #E2E8F0;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-    .loading-overlay {
-      padding: 60px;
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
       text-align: center;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #F3F4F6;
+      border-top-color: #7C3AED;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-state p {
+      font-size: 0.9rem;
+      color: #64748B;
+      margin: 0;
     }
 
     .data-table {
@@ -321,26 +449,48 @@ import { ReceiptService } from '../../../services/receipt.service';
       border-collapse: collapse;
     }
 
+    .data-table thead {
+      background: #F8FAFC;
+    }
+
     .data-table th {
-      background: #f8f9fa;
-      padding: 14px 16px;
-      text-align: left;
+      padding: 14px 20px;
+      font-size: 0.75rem;
       font-weight: 600;
-      color: #666;
-      font-size: 13px;
+      color: #64748B;
       text-transform: uppercase;
-      border-bottom: 1px solid #eee;
+      letter-spacing: 0.05em;
+      text-align: left;
+      border-bottom: 1px solid #E2E8F0;
     }
 
     .data-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 14px 20px;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 0.9rem;
+      color: #334155;
       vertical-align: middle;
     }
 
-    .data-table tr:hover {
-      background: #f8f9fa;
+    .table-row {
+      transition: background 0.15s ease;
     }
+
+    .table-row:hover {
+      background: #F8FAFC;
+    }
+
+    .table-row:last-child td {
+      border-bottom: none;
+    }
+
+    /* Column Widths */
+    .col-student { min-width: 180px; }
+    .col-book { min-width: 220px; }
+    .col-amount { width: 120px; }
+    .col-date { width: 140px; }
+    .col-status { width: 120px; }
+    .col-actions { width: 140px; }
 
     /* User Cell */
     .user-cell {
@@ -352,61 +502,65 @@ import { ReceiptService } from '../../../services/receipt.service';
     .user-avatar {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
       color: white;
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 0.9rem;
+      flex-shrink: 0;
     }
 
     .user-details {
       display: flex;
       flex-direction: column;
+      gap: 2px;
     }
 
     .user-name {
-      font-weight: 500;
-      color: #333;
+      font-weight: 600;
+      color: #1E293B;
     }
 
-    .user-email {
-      font-size: 12px;
-      color: #999;
+    .user-id {
+      font-size: 0.8rem;
+      color: #94A3B8;
     }
 
     /* Book Cell */
     .book-cell {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .book-icon {
-      width: 40px;
-      height: 40px;
-      background: #fff3e0;
-      color: #ff9800;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
+      background: #EDE9FE;
+      color: #7C3AED;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
     .book-icon .material-icons {
-      font-size: 20px;
+      font-size: 18px;
     }
 
     .book-details {
       display: flex;
       flex-direction: column;
+      gap: 2px;
     }
 
     .book-title {
       font-weight: 500;
-      color: #333;
+      color: #1E293B;
       max-width: 200px;
       white-space: nowrap;
       overflow: hidden;
@@ -414,15 +568,15 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .book-author {
-      font-size: 12px;
-      color: #999;
+      font-size: 0.8rem;
+      color: #94A3B8;
     }
 
     /* Amount */
-    .col-amount .amount-value {
+    .amount-value {
       font-weight: 700;
-      color: #667eea;
-      font-size: 16px;
+      color: #7C3AED;
+      font-size: 0.95rem;
     }
 
     /* Date */
@@ -432,44 +586,44 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .date-cell .time {
-      font-size: 11px;
-      color: #999;
+      font-size: 0.8rem;
+      color: #94A3B8;
     }
 
     /* Status Pill */
     .status-pill {
-      display: inline-block;
-      padding: 6px 14px;
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 0.75rem;
       font-weight: 600;
     }
 
     .status-pill.pending {
-      background: #fff3cd;
-      color: #856404;
+      background: #FEF3C7;
+      color: #B45309;
     }
 
     .status-pill.completed {
-      background: #d4edda;
-      color: #155724;
+      background: #D1FAE5;
+      color: #047857;
     }
 
     .status-pill.given {
-      background: #cce5ff;
-      color: #004085;
+      background: #DBEAFE;
+      color: #1D4ED8;
     }
 
     .status-pill.failed {
-      background: #f8d7da;
-      color: #721c24;
+      background: #FEE2E2;
+      color: #DC2626;
     }
 
     /* Actions */
     .action-group {
       display: flex;
       gap: 8px;
-      align-items: center;
     }
 
     .action-btn {
@@ -481,42 +635,40 @@ import { ReceiptService } from '../../../services/receipt.service';
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s;
-      background: #f0f0f0;
-      color: #666;
+      transition: all 0.2s ease;
     }
 
-    .action-btn:hover {
-      transform: translateY(-2px);
+    .action-btn .material-icons {
+      font-size: 18px;
     }
 
     .action-btn.download {
-      background: #e8eaff;
-      color: #667eea;
+      background: #EDE9FE;
+      color: #7C3AED;
     }
 
     .action-btn.download:hover {
-      background: #667eea;
+      background: #7C3AED;
       color: white;
     }
 
     .action-btn.issue {
-      background: #d4edda;
-      color: #28a745;
+      background: #D1FAE5;
+      color: #059669;
     }
 
     .action-btn.issue:hover {
-      background: #28a745;
+      background: #059669;
       color: white;
     }
 
     .action-btn.delete {
-      background: #f8d7da;
-      color: #dc3545;
+      background: #FEE2E2;
+      color: #DC2626;
     }
 
     .action-btn.delete:hover {
-      background: #dc3545;
+      background: #DC2626;
       color: white;
     }
 
@@ -526,7 +678,7 @@ import { ReceiptService } from '../../../services/receipt.service';
     }
 
     .verified-badge {
-      color: #28a745;
+      color: #059669;
       display: flex;
       align-items: center;
     }
@@ -535,64 +687,104 @@ import { ReceiptService } from '../../../services/receipt.service';
       font-size: 24px;
     }
 
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+
     /* Empty State */
     .empty-row td {
-      padding: 0 !important;
+      padding: 0;
+      border: none;
     }
 
     .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
       text-align: center;
-      padding: 60px 20px;
     }
 
     .empty-icon {
-      font-size: 80px;
-      color: #ddd;
-      margin-bottom: 20px;
+      font-size: 64px;
+      color: #CBD5E1;
+      margin-bottom: 16px;
     }
 
     .empty-state h3 {
-      margin: 0 0 12px 0;
-      color: #666;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #64748B;
+      margin: 0 0 8px 0;
     }
 
     .empty-state p {
-      color: #999;
+      font-size: 0.9rem;
+      color: #94A3B8;
       margin: 0;
     }
 
-    /* Loading */
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 16px;
+    /* Table Footer */
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: #F8FAFC;
+      border-top: 1px solid #E2E8F0;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .footer-info {
+      font-size: 0.85rem;
+      color: #64748B;
     }
 
-    .s spinning {
-      animation: spin 1s linear infinite;
+    .footer-info strong {
+      color: #1E293B;
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
       .stats-row {
         grid-template-columns: repeat(2, 1fr);
       }
+    }
 
-      .filter-tabs {
-        flex-wrap: wrap;
+    @media (max-width: 1024px) {
+      .sub-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
       }
 
-      .col-book .book-author {
-        display: none;
+      .filters-left {
+        width: 100%;
+      }
+
+      .sub-header app-global-search-bar {
+        margin-left: 0;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .filter-tabs {
+        overflow-x: auto;
       }
     }
   `]
@@ -602,6 +794,7 @@ export class ManageOrdersComponent implements OnInit {
   filteredOrders: Order[] = [];
   isLoading = false;
   activeTab = 'all';
+  searchTerm = '';
   
   processingId: number | null = null;
 
@@ -655,11 +848,22 @@ export class ManageOrdersComponent implements OnInit {
   }
 
   filterOrders() {
-    if (this.activeTab === 'all') {
-      this.filteredOrders = [...this.orders];
-    } else {
-      this.filteredOrders = this.orders.filter(o => o.status === this.activeTab);
+    let result = this.orders;
+    
+    if (this.activeTab !== 'all') {
+      result = result.filter(o => o.status === this.activeTab);
     }
+    
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(o => 
+        o.student.fullName.toLowerCase().includes(term) ||
+        o.student.email.toLowerCase().includes(term) ||
+        o.book.title.toLowerCase().includes(term)
+      );
+    }
+    
+    this.filteredOrders = result;
   }
 
   getInitials(name: string): string {

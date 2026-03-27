@@ -9,17 +9,9 @@
       <h1 class="page-title">Student Portal</h1>
     </div>
     <div class="navbar-right">
-      <nav class="quick-actions" aria-label="Quick actions">
-        <a class="quick-action" routerLink="/student/wishlist" routerLinkActive="active" title="Wishlist">
-          <span class="material-icons">favorite</span>
-        </a>
-        <a class="quick-action" routerLink="/student/fines" routerLinkActive="active" title="My Fines">
-          <span class="material-icons">account_balance_wallet</span>
-        </a>
-        <a class="quick-action" routerLink="/student/my-purchases" routerLinkActive="active" title="My Purchases">
-          <span class="material-icons">shopping_bag</span>
-        </a>
-      </nav>
+      <a routerLink="/student/wishlist" class="nav-icon-btn wishlist-btn" title="My Wishlist">
+        <span class="material-icons">favorite</span>
+      </a>
       <div class="user-badge">
         <div class="user-avatar">{{ studentInitials }}</div>
         <div class="user-info">
@@ -56,12 +48,6 @@
         <a routerLink="/student/browse" routerLinkActive="active-link">
           <span class="material-icons">search</span>
           <span>Browse Books</span>
-        </a>
-      </li>
-      <li>
-        <a routerLink="/student/wishlist" routerLinkActive="active-link">
-          <span class="material-icons">favorite</span>
-          <span>Wishlist</span>
         </a>
       </li>
       <li>

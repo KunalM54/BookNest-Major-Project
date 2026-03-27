@@ -34,9 +34,6 @@ public class BorrowService {
     @Autowired
     private FineService fineService;
 
-    @Autowired
-    private AvailabilityAlertService availabilityAlertService;
-
     // Get all borrow requests
     public List<Borrow> getAllRequests() {
         return borrowRepository.findAllByOrderByRequestDateDesc();
@@ -159,9 +156,6 @@ public class BorrowService {
         // Update book available copies
         book.setAvailableCopies(book.getAvailableCopies() - 1);
         bookRepository.save(book);
-
-        // Notify students waiting for this book
-        availabilityAlertService.notifyStudentsWhenAvailable(book.getId());
 
         // Update borrow status
         borrow.setStatus(Borrow.BorrowStatus.APPROVED);
@@ -344,7 +338,7 @@ public class BorrowService {
     public byte[] exportHistory(Long studentId, String format) throws Exception {
         List<Borrow> history = borrowRepository.findHistoryByStudentId(studentId);
         User student = userRepository.findById(studentId).orElse(null);
-        
+
         if (format.equalsIgnoreCase("pdf")) {
             return generatePdf(history, student);
         } else {
@@ -355,9 +349,9 @@ public class BorrowService {
     private byte[] generateCsv(List<Borrow> history, User student) {
         StringBuilder csv = new StringBuilder();
         csv.append("Book Title,Author,ISBN,Borrow Date,Due Date,Return Date,Status\n");
-        
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
+
         for (Borrow b : history) {
             csv.append("\"").append(b.getBook().getTitle()).append("\",");
             csv.append("\"").append(b.getBook().getAuthor()).append("\",");
@@ -367,21 +361,24 @@ public class BorrowService {
             csv.append(b.getReturnDate() != null ? b.getReturnDate().format(formatter) : "").append(",");
             csv.append("\"").append(b.getDisplayStatus()).append("\"\n");
         }
-        
+
         return csv.toString().getBytes();
     }
 
     private byte[] generatePdf(List<Borrow> history, User student) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
+
         com.itextpdf.text.Document document = new com.itextpdf.text.Document();
         com.itextpdf.text.pdf.PdfWriter.getInstance(document, out);
         document.open();
-        
-        com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 18, com.itextpdf.text.Font.BOLD);
-        com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 12, com.itextpdf.text.Font.BOLD);
-        com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 10, com.itextpdf.text.Font.NORMAL);
-        
+
+        com.itextpdf.text.Font titleFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 18,
+                com.itextpdf.text.Font.BOLD);
+        com.itextpdf.text.Font headerFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 12,
+                com.itextpdf.text.Font.BOLD);
+        com.itextpdf.text.Font normalFont = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 10,
+                com.itextpdf.text.Font.NORMAL);
+
         document.add(new com.itextpdf.text.Paragraph("Borrow History Report", titleFont));
         document.add(new com.itextpdf.text.Paragraph(" "));
         if (student != null) {
@@ -389,31 +386,35 @@ public class BorrowService {
             document.add(new com.itextpdf.text.Paragraph("Email: " + student.getEmail(), normalFont));
             document.add(new com.itextpdf.text.Paragraph(" "));
         }
-        
+
         com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(5);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{3f, 2f, 2f, 2f, 2f});
-        
-        String[] headers = {"Book Title", "Borrow Date", "Due Date", "Return Date", "Status"};
+        table.setWidths(new float[] { 3f, 2f, 2f, 2f, 2f });
+
+        String[] headers = { "Book Title", "Borrow Date", "Due Date", "Return Date", "Status" };
         for (String header : headers) {
-            com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(header, headerFont));
+            com.itextpdf.text.pdf.PdfPCell cell = new com.itextpdf.text.pdf.PdfPCell(
+                    new com.itextpdf.text.Phrase(header, headerFont));
             cell.setBackgroundColor(new com.itextpdf.text.BaseColor(220, 220, 220));
             table.addCell(cell);
         }
-        
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        
+
         for (Borrow b : history) {
             table.addCell(new com.itextpdf.text.Phrase(b.getBook().getTitle(), normalFont));
-            table.addCell(new com.itextpdf.text.Phrase(b.getRequestDate() != null ? b.getRequestDate().format(formatter) : "-", normalFont));
-            table.addCell(new com.itextpdf.text.Phrase(b.getDueDate() != null ? b.getDueDate().format(formatter) : "-", normalFont));
-            table.addCell(new com.itextpdf.text.Phrase(b.getReturnDate() != null ? b.getReturnDate().format(formatter) : "-", normalFont));
+            table.addCell(new com.itextpdf.text.Phrase(
+                    b.getRequestDate() != null ? b.getRequestDate().format(formatter) : "-", normalFont));
+            table.addCell(new com.itextpdf.text.Phrase(b.getDueDate() != null ? b.getDueDate().format(formatter) : "-",
+                    normalFont));
+            table.addCell(new com.itextpdf.text.Phrase(
+                    b.getReturnDate() != null ? b.getReturnDate().format(formatter) : "-", normalFont));
             table.addCell(new com.itextpdf.text.Phrase(b.getDisplayStatus(), normalFont));
         }
-        
+
         document.add(table);
         document.close();
-        
+
         return out.toByteArray();
     }
 
@@ -422,7 +423,7 @@ public class BorrowService {
         List<Borrow> returned = allBorrows.stream()
                 .filter(b -> b.getStatus() == Borrow.BorrowStatus.RETURNED)
                 .collect(Collectors.toList());
-        
+
         if (format.equalsIgnoreCase("pdf")) {
             return generatePdf(returned, null);
         } else {

@@ -52,19 +52,21 @@
           ₹{{ item.price }}
         </div>
         <div class="card-actions">
-          <button class="btn-view" (click)="viewBook(item.id)">
-            <span class="material-icons">visibility</span>
-            View
-          </button>
-          <button
-            *ngIf="item.availableCopies > 0"
-            class="btn-borrow"
-            [disabled]="processingBorrowId === item.id"
-            (click)="borrowNow(item)"
-          >
-            <span class="material-icons">menu_book</span>
-            {{ processingBorrowId === item.id ? 'Requesting...' : 'Borrow Now' }}
-          </button>
+          <div class="card-actions-row">
+            <button class="btn-view" (click)="viewBook(item.id)">
+              <span class="material-icons">visibility</span>
+              View
+            </button>
+            <button
+              *ngIf="item.availableCopies > 0"
+              class="btn-borrow"
+              [disabled]="processingBorrowId === item.id"
+              (click)="borrowNow(item)"
+            >
+              <span class="material-icons">menu_book</span>
+              {{ processingBorrowId === item.id ? 'Requesting...' : 'Borrow Now' }}
+            </button>
+          </div>
           <button class="btn-remove" (click)="removeFromWishlist(item.id)">
             <span class="material-icons">delete_outline</span>
             Remove

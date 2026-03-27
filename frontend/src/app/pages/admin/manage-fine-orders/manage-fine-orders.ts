@@ -5,11 +5,12 @@ import { HttpClient } from '@angular/common/http';
 import { DemoPaymentService } from '../../../services/demo-payment';
 import { SnackbarService } from '../../../services/snackbar';
 import { ReceiptService } from '../../../services/receipt.service';
+import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 
 @Component({
   selector: 'app-manage-fine-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, GlobalSearchBarComponent],
   template: `
     <div class="page-container">
 
@@ -55,7 +56,7 @@ import { ReceiptService } from '../../../services/receipt.service';
         </div>
       </div>
 
-      <!-- Sticky Sub-header with Filters -->
+      <!-- Sticky Sub-header with Search & Filters -->
       <div class="sub-header">
         <div class="filters-left">
           <div class="filter-tabs">
@@ -71,11 +72,16 @@ import { ReceiptService } from '../../../services/receipt.service';
             </button>
           </div>
         </div>
+        <app-global-search-bar 
+          placeholder="Search student or book..." 
+          [(value)]="searchTerm"
+          (valueChange)="filterFines()">
+        </app-global-search-bar>
       </div>
 
       <!-- Data Table Card -->
       <div class="table-card">
-        <div *ngIf="isLoading" class="loading-overlay">
+        <div *ngIf="isLoading" class="loading-state">
           <div class="spinner"></div>
           <p>Loading fines...</p>
         </div>
@@ -83,31 +89,31 @@ import { ReceiptService } from '../../../services/receipt.service';
         <table class="data-table" *ngIf="!isLoading">
           <thead>
             <tr>
-              <th>Fine ID</th>
-              <th>Student</th>
-              <th>Book</th>
-              <th>Days Late</th>
-              <th>Amount</th>
-              <th>Paid Amount</th>
-              <th>Date</th>
-              <th>Status</th>
+              <th class="col-id">Fine ID</th>
+              <th class="col-student">Student</th>
+              <th class="col-book">Book</th>
+              <th class="col-days">Days Late</th>
+              <th class="col-amount">Amount</th>
+              <th class="col-paid">Paid</th>
+              <th class="col-date">Date</th>
+              <th class="col-status">Status</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let fine of filteredFines" class="table-row">
-              <td>
+              <td class="col-id">
                 <span class="fine-id">#{{ fine.id }}</span>
               </td>
-              <td>
+              <td class="col-student">
                 <div class="user-cell">
                   <div class="user-avatar">{{ getInitials(fine.studentName) }}</div>
                   <div class="user-details">
                     <span class="user-name">{{ fine.studentName }}</span>
-                    <span class="user-email">{{ fine.studentEmail }}</span>
+                    <span class="user-id">{{ fine.studentEmail }}</span>
                   </div>
                 </div>
               </td>
-              <td>
+              <td class="col-book">
                 <div class="book-cell">
                   <div class="book-icon">
                     <span class="material-icons">menu_book</span>
@@ -117,19 +123,17 @@ import { ReceiptService } from '../../../services/receipt.service';
                   </div>
                 </div>
               </td>
-              <td>
-                <span class="days-late">{{ fine.daysOverdue }} days</span>
+              <td class="col-days">
+                <span class="days-badge">{{ fine.daysOverdue }} days</span>
               </td>
               <td class="col-amount">
                 <span class="amount-value">₹{{ fine.fineAmount }}</span>
               </td>
-              <td>
-                <span class="paid-amount">₹{{ fine.paidAmount || 0 }}</span>
+              <td class="col-paid">
+                <span class="paid-value">₹{{ fine.paidAmount || 0 }}</span>
               </td>
               <td class="col-date">
-                <div class="date-cell">
-                  <span>{{ fine.createdAt | date: 'MMM dd, yyyy' }}</span>
-                </div>
+                {{ fine.createdAt | date: 'MMM dd, yyyy' }}
               </td>
               <td class="col-status">
                 <span class="status-pill" [ngClass]="getStatusClass(fine.status)">
@@ -150,201 +154,520 @@ import { ReceiptService } from '../../../services/receipt.service';
             </tr>
           </tbody>
         </table>
+
+        <!-- Table Footer -->
+        <div class="table-footer" *ngIf="!isLoading && filteredFines.length > 0">
+          <div class="footer-info">
+            Showing <strong>{{ filteredFines.length }}</strong> of <strong>{{ fines.length }}</strong> fines
+          </div>
+        </div>
       </div>
 
     </div>
   `,
   styles: [`
-    /* Stats Row */
+    /* ===== BASE LAYOUT ===== */
+    .page-container {
+      padding: 0;
+      max-width: 100%;
+      background: #F8FAFC;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ===== PAGE HEADER ===== */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1E293B;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .page-icon {
+      color: #D97706;
+      font-size: 28px;
+    }
+
+    .page-subtitle {
+      font-size: 0.9rem;
+      color: #64748B;
+      margin: 0;
+      padding-left: 40px;
+    }
+
+    /* ===== STATS ROW ===== */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     .stat-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
       display: flex;
       align-items: center;
       gap: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid #E2E8F0;
     }
 
     .stat-icon {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .stat-icon .material-icons { font-size: 24px; }
-    .stat-icon.pending { background: #fff3cd; color: #856404; }
-    .stat-icon.paid { background: #d4edda; color: #28a745; }
-    .stat-icon.revenue { background: #e8eaff; color: #667eea; }
+    .stat-icon .material-icons {
+      font-size: 24px;
+    }
 
-    .stat-content { display: flex; flex-direction: column; }
-    .stat-value { font-size: 24px; font-weight: bold; color: #333; }
-    .stat-label { font-size: 13px; color: #666; }
+    .stat-icon.pending {
+      background: #FEF3C7;
+      color: #D97706;
+    }
 
-    /* Sub Header */
+    .stat-icon.paid {
+      background: #D1FAE5;
+      color: #059669;
+    }
+
+    .stat-icon.revenue {
+      background: #EDE9FE;
+      color: #7C3AED;
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1E293B;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: #64748B;
+      font-weight: 500;
+    }
+
+    /* ===== STICKY SUB-HEADER ===== */
     .sub-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 16px;
       padding: 12px 16px;
       background: white;
       border-radius: 12px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      position: sticky;
+      top: 8px;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #E2E8F0;
     }
 
-    .filter-tabs { display: flex; gap: 8px; }
+    .sub-header app-global-search-bar {
+      margin-left: auto;
+    }
 
-    .filter-tab {
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      color: #666;
-      transition: all 0.2s;
+    .filters-left {
       display: flex;
       align-items: center;
-      gap: 8px;
     }
 
-    .filter-tab:hover { background: #f0f0f0; }
-    .filter-tab.active { background: #667eea; color: white; }
-    .filter-tab .badge {
-      background: rgba(0,0,0,0.1);
-      padding: 2px 8px;
+    .filter-tabs {
+      display: flex;
+      gap: 4px;
+      background: #F1F5F9;
+      padding: 4px;
       border-radius: 10px;
-      font-size: 12px;
     }
-    .filter-tab.active .badge { background: rgba(255,255,255,0.2); }
 
-    /* Table */
+    .filter-tab {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .filter-tab:hover {
+      color: #1E293B;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .filter-tab.active {
+      background: white;
+      color: #D97706;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-tab .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      background: #EDE9FE;
+      color: #7C3AED;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .filter-tab.active .badge {
+      background: #FEF3C7;
+      color: #D97706;
+    }
+
+    /* ===== TABLE CARD ===== */
     .table-card {
       background: white;
-      border-radius: 12px;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid #E2E8F0;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
 
-    .loading-overlay { padding: 60px; text-align: center; }
+    .loading-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #F3F4F6;
+      border-top-color: #D97706;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-state p {
+      font-size: 0.9rem;
+      color: #64748B;
+      margin: 0;
+    }
 
     .data-table {
       width: 100%;
       border-collapse: collapse;
     }
 
+    .data-table thead {
+      background: #F8FAFC;
+    }
+
     .data-table th {
-      background: #f8f9fa;
-      padding: 14px 16px;
-      text-align: left;
+      padding: 14px 20px;
+      font-size: 0.75rem;
       font-weight: 600;
-      color: #666;
-      font-size: 13px;
+      color: #64748B;
       text-transform: uppercase;
-      border-bottom: 1px solid #eee;
+      letter-spacing: 0.05em;
+      text-align: left;
+      border-bottom: 1px solid #E2E8F0;
     }
 
     .data-table td {
-      padding: 14px 16px;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 14px 20px;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 0.9rem;
+      color: #334155;
       vertical-align: middle;
     }
 
-    .data-table tr:hover { background: #f8f9fa; }
+    .table-row {
+      transition: background 0.15s ease;
+    }
 
-    .fine-id { font-weight: 600; color: #667eea; }
+    .table-row:hover {
+      background: #F8FAFC;
+    }
 
-    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .table-row:last-child td {
+      border-bottom: none;
+    }
+
+    /* Column Widths */
+    .col-id { width: 80px; }
+    .col-student { min-width: 180px; }
+    .col-book { min-width: 200px; }
+    .col-days { width: 110px; }
+    .col-amount { width: 120px; }
+    .col-paid { width: 120px; }
+    .col-date { width: 130px; }
+    .col-status { width: 100px; }
+
+    /* Fine ID */
+    .fine-id {
+      font-weight: 600;
+      color: #7C3AED;
+    }
+
+    /* User Cell */
+    .user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     .user-avatar {
       width: 40px;
       height: 40px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 10px;
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
       color: white;
-      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 0.9rem;
+      flex-shrink: 0;
     }
 
-    .user-details { display: flex; flex-direction: column; }
-    .user-name { font-weight: 500; color: #333; }
-    .user-email { font-size: 12px; color: #999; }
+    .user-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-    .book-cell { display: flex; align-items: center; gap: 12px; }
+    .user-name {
+      font-weight: 600;
+      color: #1E293B;
+    }
+
+    .user-id {
+      font-size: 0.8rem;
+      color: #94A3B8;
+    }
+
+    /* Book Cell */
+    .book-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
     .book-icon {
-      width: 40px;
-      height: 40px;
-      background: #fff3e0;
-      color: #ff9800;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
+      background: #FEF3C7;
+      color: #D97706;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
     }
 
-    .book-icon .material-icons { font-size: 20px; }
+    .book-icon .material-icons {
+      font-size: 18px;
+    }
 
-    .book-details { display: flex; flex-direction: column; }
-    .book-title { font-weight: 500; color: #333; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .book-details {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
 
-    .days-late { color: #dc3545; font-weight: 500; }
+    .book-title {
+      font-weight: 500;
+      color: #1E293B;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-    .col-amount .amount-value { font-weight: 700; color: #667eea; font-size: 16px; }
-    .paid-amount { color: #28a745; font-weight: 500; }
-
-    .col-date .date-cell { display: flex; flex-direction: column; }
-
-    .status-pill {
+    /* Days Badge */
+    .days-badge {
       display: inline-block;
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 12px;
+      padding: 4px 10px;
+      background: #FEE2E2;
+      color: #DC2626;
+      border-radius: 6px;
+      font-size: 0.8rem;
       font-weight: 600;
     }
 
-    .status-pill.pending { background: #fff3cd; color: #856404; }
-    .status-pill.paid { background: #d4edda; color: #155724; }
-
-    .empty-row td { padding: 0 !important; }
-    .empty-state { text-align: center; padding: 60px 20px; }
-    .empty-icon { font-size: 80px; color: #ddd; margin-bottom: 20px; }
-    .empty-state h3 { margin: 0 0 12px 0; color: #666; }
-    .empty-state p { color: #999; margin: 0; }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 16px;
+    /* Amount */
+    .amount-value {
+      font-weight: 700;
+      color: #7C3AED;
+      font-size: 0.95rem;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .paid-value {
+      color: #059669;
+      font-weight: 500;
+    }
+
+    /* Date */
+    .col-date {
+      color: #64748B;
+      font-size: 0.85rem;
+    }
+
+    /* Status Pill */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-pill.PENDING {
+      background: #FEF3C7;
+      color: #B45309;
+    }
+
+    .status-pill.PAID {
+      background: #D1FAE5;
+      color: #047857;
+    }
+
+    /* Empty State */
+    .empty-row td {
+      padding: 0;
+      border: none;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      color: #CBD5E1;
+      margin-bottom: 16px;
+    }
+
+    .empty-state h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #64748B;
+      margin: 0 0 8px 0;
+    }
+
+    .empty-state p {
+      font-size: 0.9rem;
+      color: #94A3B8;
+      margin: 0;
+    }
+
+    /* Table Footer */
+    .table-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: #F8FAFC;
+      border-top: 1px solid #E2E8F0;
+    }
+
+    .footer-info {
+      font-size: 0.85rem;
+      color: #64748B;
+    }
+
+    .footer-info strong {
+      color: #1E293B;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1200px) {
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .sub-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+      }
+
+      .filters-left {
+        width: 100%;
+      }
+
+      .sub-header app-global-search-bar {
+        margin-left: 0;
+        width: 100%;
+      }
     }
 
     @media (max-width: 768px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .filter-tabs { flex-wrap: wrap; }
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .filter-tabs {
+        overflow-x: auto;
+      }
     }
   `]
 })
@@ -353,6 +676,7 @@ export class ManageFineOrdersComponent implements OnInit {
   filteredFines: any[] = [];
   isLoading = false;
   activeTab = 'all';
+  searchTerm = '';
 
   constructor(
     private http: HttpClient,
@@ -398,11 +722,22 @@ export class ManageFineOrdersComponent implements OnInit {
   }
 
   filterFines() {
-    if (this.activeTab === 'all') {
-      this.filteredFines = [...this.fines];
-    } else {
-      this.filteredFines = this.fines.filter(f => f.status === this.activeTab);
+    let result = this.fines;
+    
+    if (this.activeTab !== 'all') {
+      result = result.filter(f => f.status === this.activeTab);
     }
+    
+    if (this.searchTerm) {
+      const term = this.searchTerm.toLowerCase();
+      result = result.filter(f => 
+        (f.studentName && f.studentName.toLowerCase().includes(term)) ||
+        (f.studentEmail && f.studentEmail.toLowerCase().includes(term)) ||
+        (f.bookTitle && f.bookTitle.toLowerCase().includes(term))
+      );
+    }
+    
+    this.filteredFines = result;
   }
 
   getInitials(name: string): string {
