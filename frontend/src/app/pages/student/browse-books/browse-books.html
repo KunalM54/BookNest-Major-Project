@@ -40,9 +40,9 @@
 
   <!-- Books Grid -->
   <div class="books-grid" *ngIf="!loading && filteredBooks.length > 0">
-    <div class="book-card" *ngFor="let book of filteredBooksForDisplay" (click)="openBookDetail(book)" role="button" tabindex="0">
+    <div class="book-card" *ngFor="let book of filteredBooksForDisplay">
       <!-- Cover -->
-      <div class="card-cover">
+      <div class="card-cover" (click)="openBookDetail(book)">
         <img *ngIf="book.imageData && book.imageData.trim()" [src]="book.imageData" [alt]="book.title" class="cover-img">
         <div *ngIf="!book.imageData || !book.imageData.trim()" class="cover-placeholder">
           <span class="placeholder-letter">{{ book.title.charAt(0).toUpperCase() }}</span>
@@ -54,28 +54,19 @@
 
       <!-- Content -->
       <div class="card-content">
-        <h3 class="book-title">{{ book.title }}</h3>
-        <p class="book-author">by {{ book.author }}</p>
-        
-        <!-- Hover Reveal Section -->
-        <div class="hover-reveal">
-          <p class="book-info">
-            <span class="material-icons">category</span>
-            {{ book.category }}
-            <span class="separator">•</span>
-            <span class="material-icons">inventory_2</span>
-            {{ book.availableCopies }} copies
-          </p>
-          
-          <button 
-            class="request-btn" 
-            [class.unavailable]="!isAvailable(book)"
-            [disabled]="!isAvailable(book)"
-            (click)="$event.stopPropagation(); requestBook(book)">
-            <span class="material-icons">{{ isAvailable(book) ? 'add_circle' : 'block' }}</span>
-            {{ isAvailable(book) ? 'Request Book' : 'Unavailable' }}
-          </button>
+        <div class="card-content-inner">
+          <h3 class="book-title" (click)="openBookDetail(book)">{{ book.title }}</h3>
+          <p class="book-author">{{ book.author }}</p>
+          <p class="book-price" *ngIf="book.price && book.price > 0">₹{{ book.price }}</p>
         </div>
+        
+        <button 
+          class="btn-borrow w-full"
+          [disabled]="!isAvailable(book)"
+          (click)="requestBook(book)">
+          <span class="material-icons">menu_book</span>
+          {{ isAvailable(book) ? 'Borrow Now' : 'Unavailable' }}
+        </button>
       </div>
     </div>
   </div>
