@@ -22,12 +22,6 @@ public class Order {
     @Column(nullable = false)
     private Double amount;
 
-    @Column(name = "stripe_payment_intent_id")
-    private String stripePaymentIntentId;
-
-    @Column(name = "stripe_charge_id")
-    private String stripeChargeId;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private OrderStatus status;
@@ -108,22 +102,6 @@ public class Order {
 
     public void setAmount(Double amount) {
         this.amount = amount;
-    }
-
-    public String getStripePaymentIntentId() {
-        return stripePaymentIntentId;
-    }
-
-    public void setStripePaymentIntentId(String stripePaymentIntentId) {
-        this.stripePaymentIntentId = stripePaymentIntentId;
-    }
-
-    public String getStripeChargeId() {
-        return stripeChargeId;
-    }
-
-    public void setStripeChargeId(String stripeChargeId) {
-        this.stripeChargeId = stripeChargeId;
     }
 
     public OrderStatus getStatus() {

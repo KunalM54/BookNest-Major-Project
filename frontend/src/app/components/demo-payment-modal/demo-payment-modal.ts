@@ -59,18 +59,12 @@ import { ReceiptService, ReceiptData } from '../../services/receipt.service';
             <input type="text" [(ngModel)]="cardName" [placeholder]="customerName">
           </div>
 
-          <div class="payment-methods">
-            <div class="method-icons">
-              <span class="method-icon">VISA</span>
-              <span class="method-icon">MASTER</span>
-              <span class="method-icon">UPI</span>
-              <span class="method-icon">RUPAY</span>
-            </div>
+          <div class="button-row">
+            <button class="cancel-btn-form" (click)="cancelPayment()">Cancel</button>
+            <button class="pay-btn" (click)="processPayment()" [disabled]="!isFormValid()">
+              Pay ₹{{ amount }}
+            </button>
           </div>
-
-          <button class="pay-btn" (click)="processPayment()" [disabled]="!isFormValid()">
-            Pay ₹{{ amount }}
-          </button>
 
           <p class="secure-notice">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -361,6 +355,32 @@ import { ReceiptService, ReceiptData } from '../../services/receipt.service';
     .pay-btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .cancel-btn-form {
+      flex: 1;
+      padding: 14px;
+      background: #f0f0f0;
+      color: #666;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .cancel-btn-form:hover {
+      background: #e0e0e0;
+    }
+
+    .pay-btn {
+      flex: 2;
     }
 
     .secure-notice {
@@ -665,6 +685,17 @@ export class DemoPaymentModalComponent implements OnInit {
     this.expiryDate = '';
     this.cvv = '';
     this.cardName = this.customerName;
+  }
+
+  cancelPayment() {
+    this.demoPaymentService.cancelOrder(this.orderId).subscribe({
+      next: () => {
+        this.close();
+      },
+      error: () => {
+        this.close();
+      }
+    });
   }
 
   close() {

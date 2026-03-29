@@ -56,7 +56,8 @@ import { ReceiptService } from '../../../services/receipt.service';
           <div class="order-body">
             <div class="book-info">
               <div class="book-icon">
-                <span class="material-icons">menu_book</span>
+                <img *ngIf="order.book.imageData" [src]="order.book.imageData" alt="Book Cover" class="book-cover-img">
+                <span *ngIf="!order.book.imageData" class="material-icons">menu_book</span>
               </div>
               <div class="book-details">
                 <h3 class="book-title">{{ order.book.title }}</h3>
@@ -118,6 +119,9 @@ import { ReceiptService } from '../../../services/receipt.service';
 
             <div class="book-section">
               <h4>Book Details</h4>
+              <div class="book-cover-row" *ngIf="selectedOrder.book.imageData">
+                <img [src]="selectedOrder.book.imageData" alt="Book Cover" class="receipt-book-cover">
+              </div>
               <p class="book-title">{{ selectedOrder.book.title }}</p>
               <p class="book-author">by {{ selectedOrder.book.author }}</p>
             </div>
@@ -295,10 +299,17 @@ import { ReceiptService } from '../../../services/receipt.service';
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
+      overflow: hidden;
     }
 
     .book-icon .material-icons {
       font-size: 28px;
+    }
+
+    .book-cover-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .book-details {
@@ -625,6 +636,19 @@ import { ReceiptService } from '../../../services/receipt.service';
       background: #F8FAFC;
       border-radius: 12px;
       margin-bottom: 16px;
+    }
+
+    .book-cover-row {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .receipt-book-cover {
+      width: 80px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
     .book-section h4 {

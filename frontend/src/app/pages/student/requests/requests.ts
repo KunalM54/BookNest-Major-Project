@@ -41,6 +41,10 @@ export class RequestsComponent implements OnInit {
     const userId = this.authService.getUserId();
     this.borrowService.getMyRequestsHistory(userId || 0).subscribe({
       next: (data: BorrowRequest[]) => {
+        console.log('API Response for requests:', data);
+        if (data && data.length > 0) {
+          console.log('First request bookImage:', data[0].bookImage);
+        }
         this.requests = (data || []).map((req: BorrowRequest) => ({
           id: req.id,
           bookId: req.bookId,
@@ -142,5 +146,60 @@ export class RequestsComponent implements OnInit {
 
   get paginationEnd(): number {
     return Math.min(this.currentPage * this.pageSize, this.filteredRequests.length);
+  }
+
+  getImageSource(imageData: string | null | undefined): string {
+    if (!imageData) return '';
+    
+    let data = imageData.trim();
+    if (!data) return '';
+
+    // Debug: Check if it's a file path instead of actual image data
+    if (/^[\w\-]+\.(png|jpg|jpeg|gif|svg|webp)$/i.test(data)) {
+      console.warn('Invalid image data (file name detected):', data);
+      return '';
+    }
+
+    if (data.startsWith('www.')) {
+      data = `https://${data}`;
+    }
+
+    const isLikelyBase64 = (value: string): boolean => {
+      const v = value.replace(/\s/g, '');
+      if (v.length < 40) return false;
+      return /^[A-Za-z0-9+/=_-]+$/.test(v);
+    };
+
+    if (/^(https?:\/\/|\/|assets\/)/i.test(data)) {
+      return data;
+    }
+    
+    if (data.startsWith('data:')) {
+      return data;
+    }
+
+    if (!isLikelyBase64(data)) {
+      console.warn('Invalid image data (not base64):', data.substring(0, 50));
+      return '';
+    }
+
+    data = data.replace(/\s/g, '');
+    data = data.replace(/-/g, '+').replace(/_/g, '/');
+    data = data.padEnd(data.length + (4 - (data.length % 4)) % 4, '=');
+    
+    try {
+      const sample = data.substring(0, 32);
+      const decoded = atob(sample);
+      if (decoded.startsWith('\x89PNG')) {
+        return `data:image/png;base64,${data}`;
+      }
+      if (decoded.startsWith('\xFF\xD8')) {
+        return `data:image/jpeg;base64,${data}`;
+      }
+    } catch (e) {
+      console.warn('Failed to decode base64 image');
+    }
+
+    return `data:image/jpeg;base64,${data}`;
   }
 }

@@ -31,7 +31,7 @@ public class WishlistController {
                 book.put("author", w.getBook().getAuthor());
                 book.put("category", w.getBook().getCategory());
                 book.put("isbn", w.getBook().getIsbn());
-                book.put("imageData", w.getBook().getImageData());
+                book.put("imageData", validateImageData(w.getBook().getImageData()));
                 book.put("availableCopies", w.getBook().getAvailableCopies());
                 book.put("price", w.getBook().getPrice());
                 book.put("addedAt", w.getAddedAt());
@@ -45,6 +45,26 @@ public class WishlistController {
         response.put("count", books.size());
         
         return ResponseEntity.ok(response);
+    }
+
+    private String validateImageData(String imageData) {
+        if (imageData == null || imageData.trim().isEmpty()) {
+            return null;
+        }
+        
+        String trimmed = imageData.trim();
+        
+        if (trimmed.matches("^[\\w\\-]+\\.(png|jpg|jpeg|gif|svg|webp)$")) {
+            System.out.println("Filtering out invalid image data (file name): " + trimmed);
+            return null;
+        }
+        
+        if (trimmed.length() < 100 && !trimmed.startsWith("http") && !trimmed.startsWith("data:")) {
+            System.out.println("Filtering out invalid image data (too short): " + trimmed);
+            return null;
+        }
+        
+        return trimmed;
     }
 
     @PostMapping("/add")

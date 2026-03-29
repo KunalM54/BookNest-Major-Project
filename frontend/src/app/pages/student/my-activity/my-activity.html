@@ -55,12 +55,9 @@
   <div class="activity-list" *ngIf="!isLoading && !errorMessage">
     <div class="activity-card" *ngFor="let item of paginatedItems">
       <!-- Book Cover -->
-      <div class="book-cover" *ngIf="activeTab !== 'requests'">
-        <img *ngIf="item.imageData && item.imageData.trim()" [src]="item.imageData" [alt]="item.bookTitle" class="cover-img" (error)="item.imageData = undefined">
-        <span *ngIf="!item.imageData || !item.imageData.trim()" class="cover-placeholder">{{ getBookInitial(item) }}</span>
-      </div>
-      <div class="book-icon" *ngIf="activeTab === 'requests'">
-        <span class="material-icons">menu_book</span>
+      <div class="book-cover">
+        <img *ngIf="getImageSource(item.imageData)" [src]="getImageSource(item.imageData)" [alt]="item.bookTitle" class="cover-img" (error)="item.imageData = null">
+        <span *ngIf="!getImageSource(item.imageData)" class="cover-placeholder">{{ getBookInitial(item) }}</span>
       </div>
 
       <!-- Book Info -->

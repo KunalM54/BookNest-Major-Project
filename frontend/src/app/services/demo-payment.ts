@@ -33,6 +33,7 @@ export interface Order {
     title: string;
     author: string;
     price: number;
+    imageData?: string;
   };
   amount: number;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'GIVEN' | 'FAILED' | 'REFUNDED';
@@ -102,6 +103,18 @@ export class DemoPaymentService {
     return this.http.post<{ success: boolean; message?: string; order?: Order }>(
       `${this.apiUrl}/admin/mark-given/${orderId}`,
       null
+    );
+  }
+
+  cancelOrder(orderId?: number): Observable<{ success: boolean; message?: string }> {
+    if (!orderId) {
+      return new Observable(observer => {
+        observer.next({ success: true, message: 'No order to cancel' });
+        observer.complete();
+      });
+    }
+    return this.http.delete<{ success: boolean; message?: string }>(
+      `${this.apiUrl}/order/cancel/${orderId}`
     );
   }
 }

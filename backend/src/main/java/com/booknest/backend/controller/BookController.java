@@ -30,13 +30,41 @@ public class BookController {
         }
 
         String trimmedImageData = imageData.trim();
-        return trimmedImageData.isEmpty() ? null : trimmedImageData;
+        if (trimmedImageData.isEmpty()) {
+            return null;
+        }
+
+        // Check if it's just a file name (not actual image data)
+        if (trimmedImageData.matches("^[\\w\\-]+\\.(png|jpg|jpeg|gif|svg|webp)$")) {
+            System.out.println("Invalid image data detected (file name only): " + trimmedImageData);
+            return null;
+        }
+
+        // If it's a URL, validate it
+        if (trimmedImageData.startsWith("http://") || trimmedImageData.startsWith("https://")) {
+            return trimmedImageData;
+        }
+
+        // If it starts with data:, validate format
+        if (trimmedImageData.startsWith("data:image")) {
+            return trimmedImageData;
+        }
+
+        // For base64, check minimum length (actual base64 images are much longer)
+        if (trimmedImageData.length() < 100) {
+            System.out.println("Invalid image data detected (too short for base64): " + trimmedImageData.substring(0, Math.min(50, trimmedImageData.length())));
+            return null;
+        }
+
+        return trimmedImageData;
     }
 
     // Get all books
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks() {
-        return ResponseEntity.ok(bookRepository.findAll());
+        List<Book> books = bookRepository.findAll();
+        books.forEach(book -> book.setImageData(validateImageData(book.getImageData())));
+        return ResponseEntity.ok(books);
     }
 
     // Server-side pagination (non-breaking: new endpoint)
@@ -49,8 +77,34 @@ public class BookController {
     @GetMapping("/{id}")
     public ResponseEntity<Book> getBookById(@PathVariable Long id) {
         return bookRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(book -> {
+                    book.setImageData(validateImageData(book.getImageData()));
+                    return ResponseEntity.ok(book);
+                })
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Validates and sanitizes image data, returning null for invalid data
+    private String validateImageData(String imageData) {
+        if (imageData == null || imageData.trim().isEmpty()) {
+            return null;
+        }
+        
+        String trimmed = imageData.trim();
+        
+        // Reject file names like "image.png", "cover.jpg", etc.
+        if (trimmed.matches("^[\\w\\-]+\\.(png|jpg|jpeg|gif|svg|webp)$")) {
+            System.out.println("Filtering out invalid image data (file name): " + trimmed);
+            return null;
+        }
+        
+        // Reject too-short base64 strings (not real image data)
+        if (trimmed.length() < 100 && !trimmed.startsWith("http") && !trimmed.startsWith("data:")) {
+            System.out.println("Filtering out invalid image data (too short): " + trimmed);
+            return null;
+        }
+        
+        return trimmed;
     }
 
     // Add new book
@@ -92,6 +146,17 @@ public class BookController {
             response.put("message", "ISBN already exists");
             System.out.println("VALIDATION FAILED: ISBN already exists");
             return ResponseEntity.badRequest().body(response);
+        }
+
+        // Validate imageData - reject if it's just a file name
+        String imageData = book.getImageData();
+        if (imageData != null && !imageData.trim().isEmpty()) {
+            String trimmed = imageData.trim();
+            if (trimmed.matches("^[\\w\\-]+\\.(png|jpg|jpeg|gif|svg|webp)$") || trimmed.length() < 100) {
+                response.put("success", false);
+                response.put("message", "Invalid image data. Please provide a valid image URL or base64 data.");
+                return ResponseEntity.badRequest().body(response);
+            }
         }
 
         if (book.getTotalCopies() == null || book.getTotalCopies() < 1) {

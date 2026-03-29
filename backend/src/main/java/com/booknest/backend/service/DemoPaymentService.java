@@ -275,4 +275,34 @@ public class DemoPaymentService {
         response.put("order", order);
         return response;
     }
+
+    @Transactional
+    public Map<String, Object> cancelOrder(Long orderId) {
+        Map<String, Object> response = new HashMap<>();
+        
+        if (orderId == null) {
+            response.put("success", true);
+            response.put("message", "No order to cancel");
+            return response;
+        }
+        
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+        if (orderOpt.isEmpty()) {
+            response.put("success", true);
+            response.put("message", "Order not found, nothing to cancel");
+            return response;
+        }
+        
+        Order order = orderOpt.get();
+        if (order.getStatus() == Order.OrderStatus.PENDING) {
+            orderRepository.delete(order);
+            response.put("success", true);
+            response.put("message", "Order cancelled successfully");
+        } else {
+            response.put("success", false);
+            response.put("message", "Cannot cancel order with status: " + order.getStatus());
+        }
+        
+        return response;
+    }
 }

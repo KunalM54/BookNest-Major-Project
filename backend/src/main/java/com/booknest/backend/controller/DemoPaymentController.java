@@ -99,4 +99,10 @@ public class DemoPaymentController {
         Map<String, Object> result = demoPaymentService.markOrderAsGiven(orderId);
         return ResponseEntity.ok(result);
     }
+
+    @DeleteMapping("/order/cancel/{orderId}")
+    public ResponseEntity<Map<String, Object>> cancelOrder(@PathVariable Long orderId) {
+        Map<String, Object> result = demoPaymentService.cancelOrder(orderId);
+        return ResponseEntity.ok(result);
+    }
 }

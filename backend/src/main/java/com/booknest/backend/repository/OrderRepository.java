@@ -16,8 +16,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByBookIdOrderByCreatedAtDesc(Long bookId);
 
-    Optional<Order> findByStripePaymentIntentId(String paymentIntentId);
-
     Optional<Order> findByTransactionId(String transactionId);
 
     @Query("SELECT o FROM Order o WHERE o.student.id = :studentId AND o.status = :status ORDER BY o.createdAt DESC")

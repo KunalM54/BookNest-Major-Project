@@ -190,13 +190,36 @@ public class BorrowController {
         dto.setBookTitle(borrow.getBook().getTitle());
         dto.setBookAuthor(borrow.getBook().getAuthor());
         dto.setBookIsbn(borrow.getBook().getIsbn());
-        dto.setBookImage(borrow.getBook().getImageData());
+        dto.setBookImage(validateImageData(borrow.getBook().getImageData()));
         dto.setRequestDate(borrow.getRequestDate());
         dto.setDueDate(borrow.getDueDate());
         dto.setReturnDate(borrow.getReturnDate());
         dto.setActionDate(borrow.getActionDate());
         dto.setStatus(borrow.getDisplayStatus());
         return dto;
+    }
+
+    // Validates and sanitizes image data, returning null for invalid data
+    private String validateImageData(String imageData) {
+        if (imageData == null || imageData.trim().isEmpty()) {
+            return null;
+        }
+        
+        String trimmed = imageData.trim();
+        
+        // Reject file names like "image.png", "cover.jpg", etc.
+        if (trimmed.matches("^[\\w\\-]+\\.(png|jpg|jpeg|gif|svg|webp)$")) {
+            System.out.println("Filtering out invalid image data (file name): " + trimmed);
+            return null;
+        }
+        
+        // Reject too-short base64 strings (not real image data)
+        if (trimmed.length() < 100 && !trimmed.startsWith("http") && !trimmed.startsWith("data:")) {
+            System.out.println("Filtering out invalid image data (too short): " + trimmed);
+            return null;
+        }
+        
+        return trimmed;
     }
 
     // Export borrow history as CSV or PDF

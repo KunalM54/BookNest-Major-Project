@@ -40,8 +40,8 @@
         <tbody>
           <tr *ngFor="let req of paginatedRequests">
             <td class="book-cell">
-              <img *ngIf="req.bookImage && req.bookImage.trim()" [src]="req.bookImage" [alt]="req.bookTitle" class="book-thumb" (error)="req.bookImage = undefined">
-              <span *ngIf="!req.bookImage || !req.bookImage.trim()" class="material-icons book-icon">menu_book</span>
+              <img *ngIf="getImageSource(req.bookImage)" [src]="getImageSource(req.bookImage)" [alt]="req.bookTitle" class="book-thumb" (error)="req.bookImage = null">
+              <span *ngIf="!getImageSource(req.bookImage)" class="material-icons book-icon">menu_book</span>
               <span>{{req.bookTitle}}</span>
             </td>
             <td>{{req.requestDate}}</td>

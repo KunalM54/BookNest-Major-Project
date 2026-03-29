@@ -71,6 +71,7 @@ export class MyActivityComponent implements OnInit {
     return new Promise((resolve) => {
       this.borrowService.getMyRequestsHistory(userId).subscribe({
         next: (data: BorrowRequest[]) => {
+          console.log('API Response for requests:', data);
           this.requests = (data || [])
             .filter((req: BorrowRequest) => req.status === 'PENDING' || req.status === 'REJECTED')
             .map((req: BorrowRequest) => ({
@@ -78,6 +79,7 @@ export class MyActivityComponent implements OnInit {
               bookId: req.bookId,
               bookTitle: req.bookTitle || 'Unknown',
               bookAuthor: req.bookAuthor || '',
+              imageData: req.bookImage || null,
               requestDate: req.requestDate || '-',
               status: (req.status || 'PENDING').toUpperCase()
             }));
@@ -274,5 +276,51 @@ export class MyActivityComponent implements OnInit {
       case 'history': return 'Your returned books will appear here';
       default: return '';
     }
+  }
+
+  getImageSource(imageData: string | null | undefined): string {
+    if (!imageData) return '';
+    
+    let data = imageData.trim();
+    if (!data) return '';
+
+    if (data.startsWith('www.')) {
+      data = `https://${data}`;
+    }
+
+    const isLikelyBase64 = (value: string): boolean => {
+      const v = value.replace(/\s/g, '');
+      if (v.length < 40) return false;
+      return /^[A-Za-z0-9+/=_-]+$/.test(v);
+    };
+
+    if (/^(https?:\/\/|\/|assets\/)/i.test(data)) {
+      return data;
+    }
+    
+    if (data.startsWith('data:')) {
+      return data;
+    }
+
+    if (!isLikelyBase64(data)) {
+      return '';
+    }
+
+    data = data.replace(/\s/g, '');
+    data = data.replace(/-/g, '+').replace(/_/g, '/');
+    data = data.padEnd(data.length + (4 - (data.length % 4)) % 4, '=');
+    
+    try {
+      const sample = data.substring(0, 32);
+      const decoded = atob(sample);
+      if (decoded.startsWith('\x89PNG')) {
+        return `data:image/png;base64,${data}`;
+      }
+      if (decoded.startsWith('\xFF\xD8')) {
+        return `data:image/jpeg;base64,${data}`;
+      }
+    } catch (e) {}
+
+    return `data:image/jpeg;base64,${data}`;
   }
 }
