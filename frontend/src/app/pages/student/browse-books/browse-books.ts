@@ -7,6 +7,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { SnackbarService } from '../../../services/snackbar';
 import { AuthService } from '../../../services/auth';
 import { Book, BookService } from '../../../services/book';
+import { WishlistService } from '../../../services/wishlist';
 import { GlobalSearchBarComponent } from '../../../components/global-search-bar/global-search-bar';
 import { scrollToTop } from '../../../utils/scroll-to-top';
 
@@ -39,12 +40,70 @@ export class BrowseBooksComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private authService: AuthService,
     private bookService: BookService,
+    private wishlistService: WishlistService,
     private router: Router
   ) {}
+
+  wishlistBookIds: Set<number> = new Set();
+  wishlistLoading: { [bookId: number]: boolean } = {};
 
   ngOnInit() {
     this.setupDebounce();
     this.loadBooks();
+    this.loadWishlist();
+  }
+
+  loadWishlist() {
+    const userId = this.authService.getUserId();
+    if (!userId) return;
+    
+    this.wishlistService.getWishlist(userId).subscribe({
+      next: (res) => {
+        if (res.success && res.wishlist) {
+          this.wishlistBookIds = new Set(res.wishlist.map((item: any) => item.bookId || item.id));
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  isInWishlist(bookId: number): boolean {
+    return this.wishlistBookIds.has(bookId);
+  }
+
+  toggleWishlist(event: Event, book: Book) {
+    event.stopPropagation();
+    
+    const userId = this.authService.getUserId();
+    if (!userId) {
+      this.snackbar.show('Please login to add to wishlist');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.wishlistLoading[book.id!]) return;
+    this.wishlistLoading[book.id!] = true;
+
+    this.wishlistService.toggleWishlist(userId, book.id!).subscribe({
+      next: (res) => {
+        this.wishlistLoading[book.id!] = false;
+        if (res.success && res.action) {
+          if (res.action === 'added') {
+            this.wishlistBookIds.add(book.id!);
+            this.snackbar.show(`"${book.title}" added to wishlist`);
+          } else if (res.action === 'removed') {
+            this.wishlistBookIds.delete(book.id!);
+            this.snackbar.show(`"${book.title}" removed from wishlist`);
+          }
+        } else {
+          this.snackbar.show(res.message || 'Failed to update wishlist');
+        }
+      },
+      error: () => {
+        this.wishlistLoading[book.id!] = false;
+        this.snackbar.show('Failed to update wishlist');
+      }
+    });
   }
 
   ngOnDestroy() {

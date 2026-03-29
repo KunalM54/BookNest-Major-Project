@@ -50,6 +50,14 @@
         <span class="status-badge" [class.available]="isAvailable(book)">
           {{ isAvailable(book) ? 'Available' : 'Out of Stock' }}
         </span>
+        <button 
+          class="wishlist-btn" 
+          [class.in-wishlist]="isInWishlist(book.id!)"
+          (click)="toggleWishlist($event, book)"
+          [disabled]="wishlistLoading[book.id!]"
+          title="{{ isInWishlist(book.id!) ? 'Remove from wishlist' : 'Add to wishlist' }}">
+          <span class="material-icons">{{ isInWishlist(book.id!) ? 'favorite' : 'favorite_border' }}</span>
+        </button>
       </div>
 
       <!-- Content -->

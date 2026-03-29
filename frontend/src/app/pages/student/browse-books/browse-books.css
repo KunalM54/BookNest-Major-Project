@@ -214,6 +214,47 @@
   color: #047857;
 }
 
+/* Wishlist Button */
+.wishlist-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.wishlist-btn:hover {
+  transform: scale(1.1);
+  background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+}
+
+.wishlist-btn:hover .material-icons {
+  color: white;
+}
+
+.wishlist-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wishlist-btn .material-icons {
+  font-size: 20px;
+  color: #94A3B8;
+}
+
+.wishlist-btn.in-wishlist .material-icons {
+  color: #dc2626;
+}
+
 /* Card Content */
 .card-content {
   padding: 16px;

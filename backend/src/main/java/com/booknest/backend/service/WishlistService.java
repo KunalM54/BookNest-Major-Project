@@ -65,6 +65,7 @@ public class WishlistService {
         wishlistRepository.save(wishlist);
 
         response.put("success", true);
+        response.put("action", "added");
         response.put("message", "Added to wishlist");
         return response;
     }
@@ -78,6 +79,7 @@ public class WishlistService {
         if (wishlistOpt.isPresent()) {
             wishlistRepository.delete(wishlistOpt.get());
             response.put("success", true);
+            response.put("action", "removed");
             response.put("message", "Removed from wishlist");
         } else {
             response.put("success", false);
