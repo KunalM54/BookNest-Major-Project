@@ -85,6 +85,25 @@ export class BorrowRequestsComponent implements OnInit {
 
   sortRequests(data: BorrowRequest[]): BorrowRequest[] {
     return data.sort((a, b) => {
+      const statusOrder: Record<string, number> = {
+        'PENDING': 1,
+        'APPROVED': 2,
+        'OVERDUE': 2,
+        'RETURNED': 3,
+        'RETURNED_ON_TIME': 3,
+        'RETURNED_LATE': 3,
+        'REJECTED': 4
+      };
+
+      const aStatus = (a.displayStatus || 'PENDING').toUpperCase();
+      const bStatus = (b.displayStatus || 'PENDING').toUpperCase();
+      const aOrder = statusOrder[aStatus] || 99;
+      const bOrder = statusOrder[bStatus] || 99;
+
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+
       switch (this.sortBy) {
         case 'newest':
           return new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime();
@@ -226,16 +245,30 @@ export class BorrowRequestsComponent implements OnInit {
   loadRequests() {
     this.http.get<BorrowRequest[]>(`${this.apiUrl}/requests`).subscribe({
       next: (data: BorrowRequest[]) => {
+        const statusOrder: Record<string, number> = {
+          'PENDING': 1,
+          'APPROVED': 2,
+          'OVERDUE': 2,
+          'RETURNED': 3,
+          'RETURNED_ON_TIME': 3,
+          'RETURNED_LATE': 3,
+          'REJECTED': 4
+        };
+
         this.requests = (data || []).map((item) => ({
           ...item,
           borrowDate: item.actionDate || item.requestDate,
-          // FIX: Backend now sends correct displayStatus — just use it directly
           displayStatus: item.status || 'PENDING'
         })).sort((a, b) => {
-          const aStatus = a.displayStatus;
-          const bStatus = b.displayStatus;
-          if (aStatus === 'PENDING' && bStatus !== 'PENDING') return -1;
-          if (aStatus !== 'PENDING' && bStatus === 'PENDING') return 1;
+          const aStatus = (a.displayStatus || 'PENDING').toUpperCase();
+          const bStatus = (b.displayStatus || 'PENDING').toUpperCase();
+          const aOrder = statusOrder[aStatus] || 99;
+          const bOrder = statusOrder[bStatus] || 99;
+
+          if (aOrder !== bOrder) {
+            return aOrder - bOrder;
+          }
+
           const aTime = a.requestDate ? new Date(a.requestDate).getTime() : 0;
           const bTime = b.requestDate ? new Date(b.requestDate).getTime() : 0;
           return bTime - aTime;

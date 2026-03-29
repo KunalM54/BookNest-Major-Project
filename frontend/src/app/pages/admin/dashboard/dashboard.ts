@@ -69,9 +69,30 @@ export class DashboardComponent implements OnInit {
   loadRecentRequests() {
     this.http.get<BorrowRequest[]>(`${this.apiUrl}/recent?limit=20`).subscribe({
       next: (data: BorrowRequest[]) => {
+        const statusOrder: Record<string, number> = {
+          'PENDING': 1,
+          'APPROVED': 2,
+          'OVERDUE': 2,
+          'RETURNED': 3,
+          'RETURNED_ON_TIME': 3,
+          'RETURNED_LATE': 3,
+          'REJECTED': 4
+        };
+
         this.requests = [...data]
           .map(item => ({ ...item, displayStatus: item.status }))
-          .sort((a, b) => this.compareRequests(b, a))
+          .sort((a, b) => {
+            const aStatus = ((a.displayStatus || a.status) || 'PENDING').toUpperCase();
+            const bStatus = ((b.displayStatus || b.status) || 'PENDING').toUpperCase();
+            const aOrder = statusOrder[aStatus] || 99;
+            const bOrder = statusOrder[bStatus] || 99;
+
+            if (aOrder !== bOrder) {
+              return aOrder - bOrder;
+            }
+
+            return this.compareRequests(b, a);
+          })
           .slice(0, 5);
       },
       error: (error: any) => {
