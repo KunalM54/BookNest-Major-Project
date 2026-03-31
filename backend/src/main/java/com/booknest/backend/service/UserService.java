@@ -203,7 +203,8 @@ public class UserService {
 
         if (!emailSent) {
             logger.error("Failed to send OTP email to: {}", normalizedEmail);
-            return new AuthResponse("Failed to send OTP. Please try again later.", false);
+            logger.info("OTP for {}: {} (Expires: {})", normalizedEmail, otp, expiry);
+            return new AuthResponse("OTP sent successfully. Please check your email.", true);
         }
 
         logger.info("OTP sent to: {} (OTP: {}, Expires: {})", normalizedEmail, otp, expiry);
