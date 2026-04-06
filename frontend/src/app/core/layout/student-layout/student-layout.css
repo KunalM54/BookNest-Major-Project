@@ -21,18 +21,6 @@
   transition: grid-template-columns 0.3s ease;
 }
 
-.layout-container.dark-theme {
-  --layout-bg: #0f172a;
-  --surface-bg: #111827;
-  --surface-soft: #1f2937;
-  --surface-muted: #0f172a;
-  --border-color: #334155;
-  --text-primary: #e2e8f0;
-  --text-secondary: #94a3b8;
-  --brand-accent: #93c5fd;
-  --active-link-bg: linear-gradient(135deg, #3b82f6 0%, #4338ca 100%);
-}
-
 .layout-container.sidebar-collapsed {
   grid-template-columns: 70px 1fr;
 }
@@ -476,58 +464,6 @@
   padding: 24px;
   min-height: calc(100vh - 56px);
   background: var(--layout-bg);
-}
-
-.layout-container.dark-theme .quick-action.active {
-  background: rgba(59, 130, 246, 0.2);
-  color: #bfdbfe;
-  border-color: rgba(147, 197, 253, 0.36);
-}
-
-.layout-container.dark-theme .student-badge {
-  background: rgba(99, 102, 241, 0.24);
-  color: #c7d2fe;
-}
-
-.layout-container.dark-theme .nav-links .logout-btn {
-  color: #fca5a5;
-}
-
-.layout-container.dark-theme .nav-links .logout-btn:hover {
-  background-color: rgba(220, 38, 38, 0.2);
-  color: #fca5a5;
-}
-
-.layout-container.dark-theme .nav-links .logout-btn:hover .material-icons {
-  color: #fca5a5;
-}
-
-.layout-container.dark-theme .modal-card {
-  background: #111827;
-  border: 1px solid #334155;
-}
-
-.layout-container.dark-theme .modal-header,
-.layout-container.dark-theme .modal-footer {
-  border-color: #334155;
-}
-
-.layout-container.dark-theme .modal-header h3 {
-  color: #e2e8f0;
-}
-
-.layout-container.dark-theme .modal-body p {
-  color: #94a3b8;
-}
-
-.layout-container.dark-theme .btn-secondary {
-  background: #1f2937;
-  border-color: #334155;
-  color: #e2e8f0;
-}
-
-.layout-container.dark-theme .btn-secondary:hover {
-  background: #334155;
 }
 
 /* Modal Styles */

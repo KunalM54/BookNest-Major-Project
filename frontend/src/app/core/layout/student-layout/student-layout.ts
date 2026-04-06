@@ -16,9 +16,6 @@ export class StudentLayoutComponent implements OnInit, OnDestroy {
   studentName: string = '';
   studentId: string = '';
   studentInitials: string = '';
-  isDarkTheme = false;
-
-  private readonly themeStorageKey = 'booknest_student_theme';
 
   constructor(
     private authService: AuthService,
@@ -27,7 +24,6 @@ export class StudentLayoutComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadStudentInfo();
-    this.initializeTheme();
   }
 
   ngOnDestroy(): void {
@@ -63,12 +59,6 @@ export class StudentLayoutComponent implements OnInit, OnDestroy {
     this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
-  toggleTheme() {
-    this.isDarkTheme = !this.isDarkTheme;
-    localStorage.setItem(this.themeStorageKey, this.isDarkTheme ? 'dark' : 'light');
-    this.applyThemePreference();
-  }
-
   openLogoutModal() {
     this.showLogoutModal = true;
   }
@@ -81,19 +71,5 @@ export class StudentLayoutComponent implements OnInit, OnDestroy {
     this.authService.logout();
     this.router.navigate(['/login']);
     this.showLogoutModal = false;
-  }
-
-  private initializeTheme() {
-    const storedTheme = localStorage.getItem(this.themeStorageKey);
-    if (storedTheme) {
-      this.isDarkTheme = storedTheme === 'dark';
-    } else {
-      this.isDarkTheme = !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    }
-    this.applyThemePreference();
-  }
-
-  private applyThemePreference() {
-    document.body.classList.toggle('student-dark-mode', this.isDarkTheme);
   }
 }
