@@ -9,16 +9,6 @@
       </h1>
       <p class="page-subtitle">View and manage student accounts</p>
     </div>
-    <!-- <div class="header-actions">
-      <button class="btn-export" (click)="exportCsv()" title="Export all as CSV">
-        <span class="material-icons">description</span>
-        CSV
-      </button>
-      <button class="btn-export" (click)="exportPdf()" title="Export all as PDF">
-        <span class="material-icons">picture_as_pdf</span>
-        PDF
-      </button>
-    </div> -->
   </div>
 
   <!-- Sticky Sub-header with Search & Filter -->
@@ -33,8 +23,8 @@
         <span class="material-icons select-icon">expand_more</span>
       </div>
     </div>
-    <app-global-search-bar 
-      placeholder="Search by name, email, or ID..." 
+    <app-global-search-bar
+      placeholder="Search by name, email, or ID..."
       [(value)]="searchTerm"
       (valueChange)="onSearchChange()">
     </app-global-search-bar>
@@ -73,11 +63,11 @@
           </td>
           <td class="col-actions">
             <div class="action-group">
-              <button class="action-btn view" (click)="viewStudent(student)" title="View">
-                <span class="material-icons">visibility</span>
-              </button>
-              <button class="action-btn" [class.block]="student.active" [class.activate]="!student.active" 
-                (click)="student.active ? blockStudent(student) : activateStudent(student)" 
+<!--              <button class="action-btn view" (click)="viewStudent(student)" title="View">-->
+<!--                <span class="material-icons">visibility</span>-->
+<!--              </button>-->
+              <button class="action-btn" [class.block]="student.active" [class.activate]="!student.active"
+                (click)="student.active ? blockStudent(student) : activateStudent(student)"
                 [title]="student.active ? 'Block' : 'Activate'">
                 <span class="material-icons">{{ student.active ? 'block' : 'check_circle' }}</span>
               </button>
